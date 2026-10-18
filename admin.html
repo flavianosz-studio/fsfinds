@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#0B0B0D;color:#F5F4F2;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#F5F4F2;text-decoration:none}a:hover{color:#FF3B47}
+input,select,button,textarea{font-family:inherit}*{box-sizing:border-box}
+select option{background:#151518;color:#F5F4F2}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#0B0B0D">
+
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(600px 400px at 50% 20%,rgba(229,32,47,.18),transparent 70%),#0B0B0D">
+    <div style="width:100%;max-width:380px;background:#151518;border:1px solid #232327;border-radius:24px;padding:28px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;animation:rise .4s ease both">
+      <img src="assets/fs-logo.png" alt="FSFINDS" style="width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 12px 28px rgba(229,32,47,.55))">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em">FSFINDS Admin</span><span style="font-size:13px;color:#A1A0A6">Enter your password to continue</span></div>
+      <input type="email" value="{{ email }}" onChange="{{ onEmail }}" onKeyDown="{{ pwKey }}" placeholder="Email" autocomplete="email" style="width:100%;background:#0B0B0D;border:1px solid {{ pwBorder }};color:#F5F4F2;border-radius:14px;padding:14px 16px;font-size:15px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F">
+      <input type="password" value="{{ pw }}" onChange="{{ onPw }}" onKeyDown="{{ pwKey }}" placeholder="Password" autocomplete="current-password" style="width:100%;background:#0B0B0D;border:1px solid {{ pwBorder }};color:#F5F4F2;border-radius:14px;padding:14px 16px;font-size:15px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F">
+      <sc-if value="{{ pwError }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#FF5A64;line-height:1.5">{{ loginError }}</span></sc-if>
+      <button onClick="{{ login }}" style="width:100%;border:none;background:#E5202F;color:#fff;padding:14px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.98)">{{ loginCta }}</button>
+      <span style="font-size:11px;color:#6E6D73;line-height:1.5">{{ loginHint }}</span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ unlocked }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;min-height:100vh">
+  <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+    <aside style="width:240px;flex:none;position:sticky;top:0;height:100vh;border-right:1px solid #1E1E22;padding:18px 14px;display:flex;flex-direction:column;gap:6px;background:#0E0E10">
+      <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 18px"><img src="assets/fs-logo.png" alt="" style="width:40px;height:40px;object-fit:contain"><div style="display:flex;flex-direction:column;line-height:1.1"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:15px">FSFINDS</span><span style="font-size:11px;color:#A1A0A6">Admin panel</span></div></div>
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
+        <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:12px;border:none;background:{{ n.bg }};color:{{ n.fg }};padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:background .2s,color .2s" style-hover="color:#F5F4F2"><iconify-icon icon="{{ n.icon }}" style="font-size:19px"></iconify-icon><span style="flex:1">{{ n.label }}</span><span style="font-size:11px;color:#6E6D73">{{ n.count }}</span></button>
+      </sc-for>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+        <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid #232327;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrow-square-out" style="font-size:17px"></iconify-icon>View site</a>
+        <button onClick="{{ logout }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:none;background:none;color:#A1A0A6;font-size:13px;font-weight:600;cursor:pointer;text-align:left" style-hover="color:#FF5A64"><iconify-icon icon="ph:sign-out" style="font-size:17px"></iconify-icon>Log out</button>
+      </div>
+    </aside>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;background:rgba(11,11,13,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #1E1E22;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><img src="assets/fs-logo.png" alt="" style="width:34px;height:34px;object-fit:contain"></sc-if>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:160px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em">{{ pageTitle }}</span><span style="font-size:13px;color:#A1A0A6">{{ pageSub }}</span></div>
+      <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button onClick="{{ toggleSample }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#C9C8CC;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer"><span style="width:28px;height:16px;border-radius:8px;background:{{ sampleTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:2px;left:{{ sampleKnob }};width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s"></span></span>Sample data</button>
+          <div style="display:flex;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ ranges }}" as="r"><button onClick="{{ r.select }}" style="border:none;background:{{ r.bg }};color:{{ r.fg }};padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s">{{ r.label }}</button></sc-for></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showAddFind }}" hint-placeholder-val="{{ false }}"><button onClick="{{ newFind }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)"><iconify-icon icon="ph:plus-bold"></iconify-icon>Add find</button></sc-if>
+      <sc-if value="{{ showAddSeller }}" hint-placeholder-val="{{ false }}"><button onClick="{{ newSeller }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)"><iconify-icon icon="ph:plus-bold"></iconify-icon>Add seller</button></sc-if>
+    </header>
+
+    <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 14px;border-bottom:1px solid #1E1E22">
+        <sc-for list="{{ navItems }}" as="n"><button onClick="{{ n.go }}" style="border:none;background:{{ n.bg }};color:{{ n.fg }};padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px"><iconify-icon icon="{{ n.icon }}" style="font-size:18px"></iconify-icon>{{ n.label }}</button></sc-for>
+      </div>
+    </sc-if>
+
+    <main style="padding:20px;display:flex;flex-direction:column;gap:16px;max-width:1280px;width:100%">
+
+<sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-direction:column;gap:16px;animation:rise .35s ease both">
+    <sc-if value="{{ sampleOn }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:10px;align-items:center;background:rgba(229,32,47,.08);border:1px solid rgba(229,32,47,.3);border-radius:14px;padding:12px 14px;font-size:13px;color:#F5F4F2"><iconify-icon icon="ph:info" style="font-size:18px;color:#FF5A64;flex:none"></iconify-icon><span>{{ sampleNote }}</span></div></sc-if>
+    <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:12px">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+        <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s,transform .25s" style-hover="border-color:#3A3A40;transform:translateY(-2px)">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#A1A0A6;font-weight:600">{{ k.label }}</span><span style="width:30px;height:30px;border-radius:9px;background:rgba(229,32,47,.12);color:#FF5A64;display:flex;align-items:center;justify-content:center"><iconify-icon icon="{{ k.icon }}" style="font-size:16px"></iconify-icon></span></div>
+          <span style="font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.04em">{{ k.value }}</span>
+          <span style="font-size:12px;font-weight:600;color:{{ k.deltaColor }}">{{ k.delta }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ mainCols }};gap:12px">
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Traffic & clicks</span><div style="display:flex;gap:14px;font-size:12px;color:#A1A0A6"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#3A3A40"></span>Page views</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#E5202F"></span>Buy clicks</span></div></div>
+        <div style="height:220px;display:flex;align-items:flex-end;gap:{{ barGap }};border-bottom:1px solid #232327;padding-bottom:2px">
+          <sc-for list="{{ chart }}" as="d" hint-placeholder-count="14">
+            <div title="{{ d.tip }}" style="flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px;cursor:default;border-radius:6px;transition:background .2s" style-hover="background:#1C1C20">
+              <div style="width:45%;max-width:14px;height:{{ d.hv }};background:#3A3A40;border-radius:4px 4px 0 0;transform-origin:bottom;animation:grow .6s cubic-bezier(.2,.8,.2,1) both"></div>
+              <div style="width:45%;max-width:14px;height:{{ d.hc }};background:#E5202F;border-radius:4px 4px 0 0;transform-origin:bottom;animation:grow .6s .1s cubic-bezier(.2,.8,.2,1) both"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6E6D73"><span>{{ chartStart }}</span><span>{{ chartEnd }}</span></div>
+      </div>
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Top countries</span>
+        <sc-for list="{{ countries }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:30px;font-size:11px;font-weight:700;background:#1C1C20;border-radius:6px;padding:3px 0;text-align:center">{{ c.cc }}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span><span style="font-weight:700">{{ c.n }}</span><span style="width:40px;text-align:right;color:#A1A0A6;font-size:12px">{{ c.pct }}</span></div>
+            <div style="height:4px;border-radius:2px;background:#1C1C20;overflow:hidden"><div style="height:100%;width:{{ c.w }};background:#E5202F;border-radius:2px;transition:width .6s cubic-bezier(.2,.8,.2,1)"></div></div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noCountries }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#6E6D73">No visits yet.</span></sc-if>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ mainCols }};gap:12px">
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px;min-width:0;overflow-x:auto">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px">Top finds</span>
+        <div style="display:grid;grid-template-columns:minmax(160px,2fr) 1fr .7fr .7fr .7fr;gap:10px;font-size:11px;color:#6E6D73;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:0 0 8px;border-bottom:1px solid #232327;min-width:460px"><span>Find</span><span>Seller</span><span>Views</span><span>Clicks</span><span>CTR</span></div>
+        <sc-for list="{{ topFinds }}" as="f" hint-placeholder-count="6">
+          <div onClick="{{ f.edit }}" style="cursor:pointer;display:grid;grid-template-columns:minmax(160px,2fr) 1fr .7fr .7fr .7fr;gap:10px;align-items:center;font-size:13px;padding:10px 6px;margin:0 -6px;border-radius:10px;border-bottom:1px solid #1C1C20;min-width:460px;transition:background .15s" style-hover="background:#1C1C20"><span style="display:flex;align-items:center;gap:10px;min-width:0"><span style="font-size:11px;color:#6E6D73;width:16px">{{ f.rank }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600">{{ f.name }}</span></span><span style="color:#A1A0A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.seller }}</span><span>{{ f.views }}</span><span style="font-weight:700;color:#FF5A64">{{ f.clicks }}</span><span style="color:#A1A0A6">{{ f.ctr }}</span></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Devices</span>
+          <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px"><sc-for list="{{ devices }}" as="d"><div style="width:{{ d.w }};background:{{ d.color }};transition:width .6s"></div></sc-for></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><sc-for list="{{ devices }}" as="d"><span style="display:flex;align-items:center;gap:6px;color:#C9C8CC"><span style="width:8px;height:8px;border-radius:2px;background:{{ d.color }}"></span>{{ d.label }} {{ d.pct }}</span></sc-for></div>
+        </div>
+        <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Traffic sources</span>
+          <sc-for list="{{ sources }}" as="s" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="flex:1">{{ s.name }}</span><div style="width:90px;height:4px;border-radius:2px;background:#1C1C20;overflow:hidden"><div style="height:100%;width:{{ s.w }};background:#FF5A64"></div></div><span style="width:36px;text-align:right;font-weight:700">{{ s.n }}</span></div></sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ mainCols }};gap:12px">
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Sellers performance</span>
+        <sc-for list="{{ sellerPerf }}" as="s" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+            <span style="width:34px;height:34px;flex:none;border-radius:10px;background:#1C1C20;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:11px">{{ s.code }}</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="color:#A1A0A6;flex:none">{{ s.meta }}</span></div><div style="height:4px;border-radius:2px;background:#1C1C20;overflow:hidden"><div style="height:100%;width:{{ s.w }};background:#E5202F;transition:width .6s"></div></div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:4px;min-width:0">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Recent activity</span>
+        <sc-for list="{{ recent }}" as="r" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #1C1C20"><span style="width:28px;height:28px;flex:none;border-radius:8px;background:{{ r.bg }};color:{{ r.fg }};display:flex;align-items:center;justify-content:center"><iconify-icon icon="{{ r.icon }}" style="font-size:15px"></iconify-icon></span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong style="font-weight:700">{{ r.label }}</strong> <span style="color:#A1A0A6">{{ r.detail }}</span></span><span style="font-size:11px;color:#6E6D73;flex:none">{{ r.cc }} · {{ r.ago }}</span></div>
+        </sc-for>
+        <sc-if value="{{ noRecent }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#6E6D73">No activity yet.</span></sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFinds }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:12px;animation:rise .35s ease both">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input value="{{ fq }}" onChange="{{ onFq }}" placeholder="Search finds" style="flex:1;min-width:200px;background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F">
+      <select value="{{ fSeller }}" onChange="{{ onFSeller }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="all">All sellers</option><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select>
+      <select value="{{ fCat }}" onChange="{{ onFCat }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="all">All categories</option><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select>
+    </div>
+    <div style="background:#151518;border:1px solid #232327;border-radius:20px;overflow:hidden">
+      <sc-for list="{{ findRows }}" as="f" hint-placeholder-count="8">
+        <div style="display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #1C1C20;flex-wrap:wrap;transition:background .15s" style-hover="background:#18181C">
+          <div style="width:48px;height:48px;flex:none;border-radius:12px;background:{{ f.thumb }};background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#FF5A64"><iconify-icon icon="{{ f.icon }}" style="font-size:22px;opacity:{{ f.iconOpacity }}"></iconify-icon></div>
+          <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:3px"><span style="font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center">{{ f.name }}<sc-if value="{{ f.featured }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;background:rgba(229,32,47,.14);color:#FF5A64;padding:2px 7px;border-radius:999px">Featured</span></sc-if></span><span style="font-size:12px;color:#A1A0A6">{{ f.meta }}</span></div>
+          <div style="display:flex;gap:16px;font-size:12px;color:#A1A0A6;flex-wrap:wrap"><span><strong style="color:#F5F4F2;font-size:14px">{{ f.price }}</strong></span><span>{{ f.qc }} QC</span><span>{{ f.clicks }} all-time clicks</span></div>
+          <div style="display:flex;gap:4px">
+            <button onClick="{{ f.edit }}" title="Edit" style="width:36px;height:36px;border-radius:10px;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:pencil-simple"></iconify-icon></button>
+            <button onClick="{{ f.dup }}" title="Duplicate" style="width:36px;height:36px;border-radius:10px;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:copy"></iconify-icon></button>
+            <button onClick="{{ f.del }}" title="Delete" style="width:36px;height:36px;border-radius:10px;border:1px solid #2A2A30;background:#0B0B0D;color:#FF5A64;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s" style-hover="background:rgba(229,32,47,.15)"><iconify-icon icon="ph:trash"></iconify-icon></button>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noFinds }}" hint-placeholder-val="{{ false }}"><div style="padding:40px;text-align:center;color:#A1A0A6;font-size:14px">No finds match.</div></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isSellers }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;animation:rise .35s ease both">
+    <sc-for list="{{ sellerCards }}" as="s" hint-placeholder-count="6">
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;transition:border-color .2s,transform .25s" style-hover="border-color:#3A3A40;transform:translateY(-2px)">
+        <div style="display:flex;gap:12px;align-items:center">
+          <span style="width:48px;height:48px;flex:none;border-radius:14px;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:15px">{{ s.code }}</span>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:12px;color:#A1A0A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.tag }}</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <div style="background:#0B0B0D;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#6E6D73">Finds</span><span style="font-weight:700">{{ s.count }}</span></div>
+          <div style="background:#0B0B0D;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#6E6D73">All-time clicks</span><span style="font-weight:700;color:#FF5A64">{{ s.clicks }}</span></div>
+          <div style="background:#0B0B0D;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#6E6D73">Rating</span><span style="font-weight:700">★ {{ s.rating }}</span></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onClick="{{ s.edit }}" style="flex:1;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">Edit</button>
+          <button onClick="{{ s.addFind }}" style="flex:1;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">+ Find</button>
+          <button onClick="{{ s.del }}" title="Delete" style="width:40px;border:1px solid #2A2A30;background:#0B0B0D;color:#FF5A64;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:rgba(229,32,47,.15)"><iconify-icon icon="ph:trash"></iconify-icon></button>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:14px;animation:rise .35s ease both">
+    <sc-if value="{{ usersOff }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#151518;border:1px dashed #2A2A30;border-radius:20px;padding:36px 24px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><iconify-icon icon="ph:users-three" style="font-size:36px;color:#FF5A64"></iconify-icon><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px">Connect Supabase to see members</span><span style="font-size:13px;color:#A1A0A6;max-width:460px;line-height:1.6">Add your Project URL and anon key in the Tweaks panel and run supabase-setup.sql. Everyone who registers on the site will appear here.</span></div>
+    </sc-if>
+    <sc-if value="{{ usersOn }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:{{ userKpiCols }};gap:12px">
+        <sc-for list="{{ userKpis }}" as="k" hint-placeholder-count="4"><div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#A1A0A6;font-weight:600">{{ k.label }}</span><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.04em">{{ k.value }}</span></div></sc-for>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input value="{{ uq }}" onChange="{{ onUq }}" placeholder="Search by email or country" style="flex:1;min-width:200px;background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F">
+        <button onClick="{{ loadUsers }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrows-clockwise"></iconify-icon>{{ usersRefreshLabel }}</button>
+        <button onClick="{{ exportUsers }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:download-simple"></iconify-icon>Export CSV</button>
+      </div>
+      <sc-if value="{{ usersErr }}" hint-placeholder-val="{{ false }}"><div style="background:rgba(229,32,47,.08);border:1px solid rgba(229,32,47,.3);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5">{{ usersErr }}</div></sc-if>
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:minmax(220px,2fr) 1fr 1fr 1fr .7fr .7fr;gap:10px;padding:12px 16px;font-size:11px;color:#6E6D73;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #232327;min-width:720px"><span>Member</span><span>Country</span><span>Joined</span><span>Last seen</span><span>Finds</span><span>Sellers</span></div>
+        <sc-for list="{{ userRows }}" as="u" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:minmax(220px,2fr) 1fr 1fr 1fr .7fr .7fr;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid #1C1C20;font-size:13px;min-width:720px;transition:background .15s" style-hover="background:#18181C">
+            <span style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:32px;height:32px;flex:none;border-radius:10px;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">{{ u.initial }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600">{{ u.email }}</span></span>
+            <span style="color:#C9C8CC">{{ u.country }}</span><span style="color:#A1A0A6">{{ u.joined }}</span><span style="color:#A1A0A6">{{ u.seen }}</span><span style="font-weight:700">{{ u.items }}</span><span style="font-weight:700">{{ u.sellers }}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noUsers }}" hint-placeholder-val="{{ false }}"><div style="padding:36px;text-align:center;color:#A1A0A6;font-size:14px">{{ noUsersLabel }}</div></sc-if>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isCats }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:14px;animation:rise .35s ease both">
+    <div style="display:flex;gap:10px;align-items:center;background:#151518;border:1px solid #232327;border-radius:14px;padding:12px 14px;font-size:13px;color:#A1A0A6;line-height:1.5"><iconify-icon icon="ph:image" style="font-size:18px;color:#FF5A64;flex:none"></iconify-icon><span>Use product photos with a transparent or white background (PNG works best). Images are resized automatically. Categories without a photo show the red icon.</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      <sc-for list="{{ catCards }}" as="c" hint-placeholder-count="6">
+        <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:12px">
+          <div style="aspect-ratio:1.25;border-radius:14px;background:{{ c.tileBg }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ false }}"><div style="width:80%;height:80%;background:{{ c.imgBg }};background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 12px 14px rgba(0,0,0,.28));"></div></sc-if>
+            <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ true }}"><iconify-icon icon="{{ c.icon }}" style="font-size:48px;color:#FF4A55"></iconify-icon></sc-if>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">{{ c.label }}</span><span style="font-size:12px;color:#A1A0A6">{{ c.count }} finds</span></div>
+          <div style="display:flex;gap:6px">
+            <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:upload-simple"></iconify-icon>Upload<input type="file" accept="image/*" onChange="{{ c.upload }}" style="display:none"></label>
+            <button onClick="{{ c.setUrl }}" style="flex:1;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F">Paste URL</button>
+            <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ false }}"><button onClick="{{ c.remove }}" title="Remove" style="width:40px;border:1px solid #2A2A30;background:#0B0B0D;color:#FF5A64;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center"><iconify-icon icon="ph:trash"></iconify-icon></button></sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:{{ mainCols }};gap:12px;animation:rise .35s ease both">
+    <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px">
+      <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Affiliate & site</span>
+      <sc-for list="{{ settingFields }}" as="sf" hint-placeholder-count="4">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">{{ sf.label }}<input type="{{ sf.type }}" value="{{ sf.value }}" onChange="{{ sf.onChange }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+      </sc-for>
+      <button onClick="{{ togglePopupSetting }}" style="display:flex;align-items:center;justify-content:space-between;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:12px 14px;border-radius:12px;font-size:14px;cursor:pointer"><span>Show coupon popup to new visitors</span><span style="width:38px;height:22px;border-radius:11px;background:{{ popupTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ popupKnob }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s"></span></span></button>
+      <button onClick="{{ saveSettings }}" style="align-self:flex-start;border:none;background:#E5202F;color:#fff;padding:13px 20px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer" style-hover="background:#FF3B47" style-active="transform:scale(.96)">Save settings</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px">Data</span>
+        <span style="font-size:13px;color:#A1A0A6;line-height:1.55">Download a backup of your sellers, finds and settings, or restore one.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ exportData }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:download-simple"></iconify-icon>Export JSON</button>
+          <label style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer"><iconify-icon icon="ph:upload-simple"></iconify-icon>Import JSON<input type="file" accept=".json,application/json" onChange="{{ importData }}" style="display:none"></label>
+        </div>
+      </div>
+      <div style="background:#151518;border:1px solid rgba(229,32,47,.35);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:#FF5A64">Danger zone</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ clearEvents }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F">Clear analytics</button>
+          <button onClick="{{ resetCatalog }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#FF5A64;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F">Reset catalog to starter</button>
+        </div>
+      </div>
+      <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:20px;display:flex;gap:12px;font-size:13px;color:#A1A0A6;line-height:1.6"><iconify-icon icon="ph:info" style="font-size:18px;color:#FF5A64;flex:none;margin-top:2px"></iconify-icon><span>This panel stores everything in this browser. To see every visitor's clicks and countries and edit the catalog from any device, connect a database such as Supabase or Firebase when the site goes live.</span></div>
+    </div>
+  </div>
+</sc-if>
+
+    </main>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeDrawer }}" style="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;justify-content:flex-end">
+    <div onClick="{{ stop }}" style="width:100%;max-width:520px;height:100%;background:#121214;border-left:1px solid #232327;display:flex;flex-direction:column;animation:slideIn .3s cubic-bezier(.2,.8,.2,1) both">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #232327"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:18px">{{ drawerTitle }}</span><button onClick="{{ closeDrawer }}" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;font-size:18px;cursor:pointer;transition:transform .3s" style-hover="transform:rotate(90deg)">×</button></div>
+      <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px">
+
+        <sc-if value="{{ editingFind }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Product link (Weidian, Taobao, 1688 or agent)<input value="{{ ef.link }}" onChange="{{ efSet.link }}" placeholder="https://weidian.com/item.html?itemID=..." style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <sc-if value="{{ efParsed }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:12px;font-weight:600;background:rgba(61,220,132,.12);color:#3DDC84;padding:5px 10px;border-radius:999px">Detected {{ ef.platform }} · {{ ef.itemId }}</span></sc-if>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Name<input value="{{ ef.name }}" onChange="{{ efSet.name }}" placeholder="Heavyweight Boxy Tee" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ ef.seller }}" onChange="{{ efSet.seller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Category<select value="{{ ef.cat }}" onChange="{{ efSet.cat }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Price (USD)<input type="number" step="0.01" value="{{ ef.price }}" onChange="{{ efSet.price }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Weight (kg)<input type="number" step="0.01" value="{{ ef.kg }}" onChange="{{ efSet.kg }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Main image URL<input value="{{ ef.image }}" onChange="{{ efSet.image }}" placeholder="https://…/photo.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <sc-if value="{{ efHasImage }}" hint-placeholder-val="{{ false }}"><div style="width:120px;aspect-ratio:1;border-radius:14px;border:1px solid #2A2A30;background:{{ efImageBg }};background-size:cover;background-position:center"></div></sc-if>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo URLs (one per line) · {{ efQcCount }}<textarea value="{{ ef.qcText }}" onChange="{{ efSet.qcText }}" rows="5" placeholder="https://…/qc1.jpg&#10;https://…/qc2.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea></label>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px"><sc-for list="{{ efQcThumbs }}" as="q"><div style="aspect-ratio:1;border-radius:10px;background:{{ q.bg }};background-size:cover;background-position:center;border:1px solid #2A2A30"></div></sc-for></div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo count (if you don't have the URLs yet)<input type="number" value="{{ ef.qc }}" onChange="{{ efSet.qc }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <button onClick="{{ efToggleFeatured }}" style="display:flex;align-items:center;justify-content:space-between;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:12px 14px;border-radius:12px;font-size:14px;cursor:pointer"><span>Featured on the home page</span><span style="width:38px;height:22px;border-radius:11px;background:{{ efFeatTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ efFeatKnob }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s"></span></span></button>
+        </sc-if>
+
+        <sc-if value="{{ editingSeller }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Store name<input value="{{ es.name }}" onChange="{{ esSet.name }}" placeholder="Northline Studio" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Initials<input value="{{ es.code }}" onChange="{{ esSet.code }}" maxlength="3" placeholder="NS" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;text-transform:uppercase" style-focus="border-color:#E5202F"></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Tagline<input value="{{ es.tag }}" onChange="{{ esSet.tag }}" placeholder="Heavyweight basics & fleece" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Badge<input value="{{ es.badge }}" onChange="{{ esSet.badge }}" placeholder="Top rated" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Platform<select value="{{ es.platform }}" onChange="{{ esSet.platform }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="Weidian">Weidian</option><option value="Taobao">Taobao</option><option value="1688">1688</option></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Shop ID<input value="{{ es.shop }}" onChange="{{ esSet.shop }}" placeholder="1652189023" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Rating<input type="number" step="0.1" min="0" max="5" value="{{ es.rating }}" onChange="{{ esSet.rating }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Ships in<input value="{{ es.ship }}" onChange="{{ esSet.ship }}" placeholder="1–2 days" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Partner since<input value="{{ es.since }}" onChange="{{ esSet.since }}" placeholder="2024" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">About this seller<textarea value="{{ es.bio }}" onChange="{{ esSet.bio }}" rows="4" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea></label>
+        </sc-if>
+
+        <sc-if value="{{ formError }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#FF5A64">{{ formError }}</span></sc-if>
+      </div>
+      <div style="display:flex;gap:8px;padding:16px 20px;border-top:1px solid #232327">
+        <button onClick="{{ closeDrawer }}" style="flex:1;border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ saveDrawer }}" style="flex:2;border:none;background:#E5202F;color:#fff;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.98)">Save</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ cancelConfirm }}" style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px">
+    <div onClick="{{ stop }}" style="width:100%;max-width:380px;background:#151518;border:1px solid #2A2A30;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px;animation:rise .25s ease both">
+      <span style="font-family:'Sora',sans-serif;font-weight:800;font-size:18px">{{ confirmTitle }}</span>
+      <span style="font-size:14px;color:#A1A0A6;line-height:1.55">{{ confirmText }}</span>
+      <div style="display:flex;gap:8px"><button onClick="{{ cancelConfirm }}" style="flex:1;border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Cancel</button><button onClick="{{ doConfirm }}" style="flex:1;border:none;background:#E5202F;color:#fff;padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Delete</button></div>
+    </div>
+  </div>
+</sc-if>
+
+<div style="position:fixed;left:50%;bottom:24px;z-index:70;transform:translateX(-50%) translateY({{ toastY }});opacity:{{ toastOpacity }};transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .25s;pointer-events:none;background:#F5F4F2;color:#0B0B0D;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#E5202F"></span>{{ toast }}</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;supabaseUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Supabase&quot;},&quot;supabaseAnonKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Supabase&quot;},&quot;adminEmails&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Supabase&quot;},&quot;adminPassword&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;fsfinds&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Local preview&quot;}}">
+const CATS=[['shoes','Shoes'],['tops','Tops'],['hoodies','Hoodies'],['pants','Pants'],['outerwear','Outerwear'],['accessories','Accessories']];
+const CAT_ICONS={shoes:'ph:sneaker-move-duotone',tops:'ph:t-shirt-duotone',hoodies:'ph:hoodie-duotone',pants:'ph:pants-duotone',outerwear:'ph:coat-hanger-duotone',accessories:'ph:handbag-duotone'};
+let SB=null;function sbClient(url,key){if(!SB&&url&&key&&window.supabase){try{SB=window.supabase.createClient(url,key);}catch(e){}}return SB;}
+const STARTER_SELLERS=[
+{id:'northline',name:'Northline Studio',badge:'Top rated',tag:'Heavyweight basics & fleece',platform:'Weidian',rating:'4.9',ship:'1–2 days',since:'2023',code:'NS',shop:'1652189023',bio:'Cotton tees and fleece in 400–500 gsm. Consistent sizing and quick restocks on core colours.'},
+{id:'kiln',name:'Kiln Footwear',badge:'Shoes',tag:'Runners, court & skate shoes',platform:'Weidian',rating:'4.8',ship:'2–4 days',since:'2022',code:'KF',shop:'1713002291',bio:'Footwear specialist. Sends extra measurement photos on request and ships with double boxes.'},
+{id:'mono',name:'Mono Atelier',badge:'Denim',tag:'Tailored pants & denim',platform:'Taobao',rating:'4.7',ship:'2–3 days',since:'2023',code:'MA',shop:'58210457',bio:'Denim and trousers with full size charts per item, including thigh and leg opening.'},
+{id:'harbor',name:'Harbor Outdoor',badge:'Outerwear',tag:'Shells, puffers & vests',platform:'1688',rating:'4.8',ship:'3–5 days',since:'2022',code:'HO',shop:'b2b-22189',bio:'Outerwear with taped seams and real down fill options. Heavier parcels, so plan your shipping.'},
+{id:'quiet',name:'Quiet Goods',badge:'Accessories',tag:'Bags, belts, eyewear',platform:'Weidian',rating:'4.6',ship:'1–3 days',since:'2024',code:'QG',shop:'1880423117',bio:'Small accessories that add almost nothing to your parcel weight.'},
+{id:'loop',name:'Loop Knit Co.',badge:'New',tag:'Knitwear & sets',platform:'Taobao',rating:'4.9',ship:'2–3 days',since:'2024',code:'LK',shop:'71933025',bio:'Wool and cotton knits made in small batches. Colours are photographed in daylight.'}];
+const RAW=[['Heavyweight Boxy Tee','tops','northline',14.9,24,0.32],['Garment-Dyed Pocket Tee','tops','northline',12.5,18,0.28],['Brushed Fleece Hoodie','hoodies','northline',29.7,36,0.85],['Zip Fleece Hoodie','hoodies','northline',33.0,22,0.9],['Retro Runner 95','shoes','kiln',42.1,60,1.4],['Court Low Classic','shoes','kiln',36.4,48,1.3],['Suede Skate Mid','shoes','kiln',39.6,31,1.35],['Trail Runner GTX','shoes','kiln',52.8,27,1.5],['Wide-Leg Washed Denim','pants','mono',32.8,29,0.9],['Pleated Wool Trouser','pants','mono',38.5,14,0.7],['Straight Selvedge Jean','pants','mono',34.7,20,0.95],['Technical Cargo Pant','pants','mono',26.4,17,0.6],['Hooded Down Puffer','outerwear','harbor',84.2,40,1.6],['3L Shell Jacket','outerwear','harbor',69.4,33,0.8],['Quilted Liner Vest','outerwear','harbor',38.0,12,0.5],['Waxed Field Jacket','outerwear','harbor',70.2,19,1.3],['Leather Belt 35mm','accessories','quiet',11.1,26,0.3],['Rimless Sunglasses','accessories','quiet',13.5,15,0.15],['Nylon Crossbody Bag','accessories','quiet',18.9,21,0.35],['Ribbed Wool Beanie','accessories','quiet',8.6,9,0.12],['Cable Knit Crewneck','hoodies','loop',31.9,23,0.7],['Knit Polo Shirt','tops','loop',24.8,16,0.35],['Lounge Knit Set','tops','loop',41.3,28,0.9],['Mohair Cardigan','outerwear','loop',44.6,11,0.6]];
+const STARTER_PRODUCTS=RAW.map((r,i)=>{const s=STARTER_SELLERS.find(x=>x.id===r[2]);const id=s.platform==='Taobao'?String(700000000000+i*913577):s.platform==='1688'?String(650000000000+i*771233):String(7400000000+i*3917311);return{id:'p'+i,name:r[0],cat:r[1],seller:r[2],price:r[3],qc:r[4],kg:r[5],platform:s.platform,itemId:id,image:null,qcPhotos:[]};});
+const COUNTRIES=[['US','United States',26],['BR','Brazil',18],['GB','United Kingdom',11],['DE','Germany',8],['FR','France',7],['CA','Canada',6],['AU','Australia',5],['PT','Portugal',4],['ES','Spain',4],['NL','Netherlands',3],['IT','Italy',3],['PL','Poland',2],['SE','Sweden',2],['MX','Mexico',1]];
+const REFS=[['direct',30],['tiktok.com',24],['reddit.com',18],['instagram.com',12],['google.com',10],['discord.com',6]];
+const DEVS=[['mobile',62],['desktop',30],['tablet',8]];
+function parseLink(u){u=(u||'').trim();if(!u)return null;let m;const inner=u.match(/[?&](?:url|link|productLink)=([^&]+)/i);
+  if(inner){try{const d=decodeURIComponent(inner[1]);const r=parseLink(d.includes('%')?decodeURIComponent(d):d);if(r)return r;}catch(e){}}
+  if((m=u.match(/weidian\.com.*?(?:itemID|itemId|item_id)=(\d+)/i))||(m=u.match(/item-micro-(\d+)/i)))return{platform:'Weidian',id:m[1]};
+  if((m=u.match(/1688\.com\/offer\/(\d+)/i))||(m=u.match(/item-1688-(\d+)/i)))return{platform:'1688',id:m[1]};
+  if((m=u.match(/(?:taobao|tmall)\.com.*?[?&]id=(\d+)/i))||(m=u.match(/item-(\d{9,})\.html/i)))return{platform:'Taobao',id:m[1]};
+  if((m=u.match(/[?&](?:id|itemID)=(\d{8,})/i)))return{platform:'Weidian',id:m[1]};return null;}
+const srcUrl=(p,id)=>p==='Taobao'?`https://item.taobao.com/item.htm?id=${id}`:p==='1688'?`https://detail.1688.com/offer/${id}.html`:`https://weidian.com/item.html?itemID=${id}`;
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function pickW(r,list){const tot=list.reduce((a,x)=>a+x[x.length-1],0);let v=r()*tot;for(const x of list){v-=x[x.length-1];if(v<=0)return x;}return list[0];}
+function sampleEvents(products){const r=rng(42),out=[],now=Date.now();for(let d=89;d>=0;d--){const base=40+Math.round((89-d)*1.2)+Math.round(r()*25);for(let i=0;i<base;i++){const c=pickW(r,COUNTRIES),t=now-d*864e5-Math.round(r()*864e5),vid='s'+Math.floor(r()*base*6+d*7),dev=pickW(r,DEVS)[0],ref=pickW(r,REFS)[0];
+  out.push({t,type:'visit',vid,cc:c[0],country:c[1],dev,ref,sample:1});const n=1+Math.floor(r()*4);for(let k=0;k<n;k++){const p=products[Math.floor(Math.pow(r(),1.6)*products.length)];if(!p)break;out.push({t:t+k*40000,type:'view',page:'product',id:p.id,vid,cc:c[0],country:c[1],dev,ref,sample:1});if(r()<.22)out.push({t:t+k*40000+9000,type:'buy',id:p.id,seller:p.seller,vid,cc:c[0],country:c[1],dev,ref,sample:1});}
+  if(r()<.05)out.push({t:t+5000,type:'signup',vid,cc:c[0],country:c[1],dev,ref,sample:1});if(r()<.08)out.push({t:t+3000,type:'qc',vid,cc:c[0],country:c[1],dev,ref,sample:1});}}return out;}
+const fmt=n=>n>=1e4?(n/1e3).toFixed(1)+'k':n.toLocaleString('en-US');
+const ago=t=>{const s=(Date.now()-t)/1000;return s<60?'now':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';};
+const EV_META={visit:['Visit','ph:globe-hemisphere-west','#1C1C20','#C9C8CC'],view:['Viewed','ph:eye','#1C1C20','#C9C8CC'],buy:['Buy click','ph:shopping-bag-open-fill','rgba(229,32,47,.15)','#FF5A64'],signup:['Sign-up click','ph:user-plus','rgba(61,220,132,.12)','#3DDC84'],store:['Store click','ph:storefront','rgba(229,32,47,.15)','#FF5A64'],qc:['QC lookup','ph:magnifying-glass','#1C1C20','#C9C8CC'],fav:['Saved','ph:heart-fill','rgba(229,32,47,.15)','#FF5A64'],search:['Search','ph:magnifying-glass','#1C1C20','#C9C8CC'],copy:['Copied link','ph:link','#1C1C20','#C9C8CC']};
+
+class Component extends DCLogic {
+  state={authed:false,checking:true,email:'',pw:'',pwError:false,loginErr:'',busy:false,section:'dash',range:30,sample:null,w:window.innerWidth,
+    db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null};
+  loadDb(){try{const d=JSON.parse(localStorage.getItem('fsf_db')||'null');if(d&&d.sellers)return{settings:{},...d};}catch(e){}return{sellers:STARTER_SELLERS,products:STARTER_PRODUCTS,settings:{}};}
+  loadEvents(){try{return JSON.parse(localStorage.getItem('fsf_events')||'[]');}catch(e){return[];}}
+  componentDidMount(){this.initAuth();this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
+    this.onStorage=e=>{if(e.key==='fsf_events')this.setState({events:this.loadEvents()});};window.addEventListener('storage',this.onStorage);
+    this.poll=setInterval(()=>this.setState({events:this.loadEvents()}),15000);
+    this.onKey=e=>{if(e.key==='Escape')this.setState({drawer:null,confirm:null});};window.addEventListener('keydown',this.onKey);}
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('storage',this.onStorage);window.removeEventListener('keydown',this.onKey);clearInterval(this.poll);clearTimeout(this.tt);}
+  saveDb(db,msg){localStorage.setItem('fsf_db',JSON.stringify(db));this.setState({db});if(msg)this.showToast(msg);}
+  showToast(m){clearTimeout(this.tt);this.setState({toast:m,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
+  sbUrl(){return this.props.supabaseUrl||'';}
+  sbKey(){return this.props.supabaseAnonKey||'';}
+  isAdmin(u){if(!u)return false;const list=(this.props.adminEmails||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return list.includes((u.email||'').toLowerCase())||(u.app_metadata&&u.app_metadata.role==='admin');}
+  initAuth(n=0){if(!this.sbUrl()){this.setState({checking:false,authed:sessionStorage.getItem('fsf_admin')==='1'});return;}
+    const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);else this.setState({checking:false});return;}
+    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok)this.loadUsers();});}
+  async loadUsers(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;this.setState({usersLoading:true,usersErr:''});
+    try{const [p,f]=await Promise.all([c.from('profiles').select('*').order('created_at',{ascending:false}).limit(1000),c.from('favorites').select('user_id,items,sellers').limit(1000)]);
+      if(p.error)throw p.error;const fav={};((f&&f.data)||[]).forEach(r=>{fav[r.user_id]=r;});
+      this.setState({users:(p.data||[]).map(u=>({...u,items:(fav[u.id]&&fav[u.id].items||[]).length,sellers:(fav[u.id]&&fav[u.id].sellers||[]).length})),usersLoaded:true});}
+    catch(e){this.setState({usersErr:'Could not load members: '+((e&&e.message)||'unknown error')+'. Run supabase-setup.sql and make sure your account has the admin role.',usersLoaded:true});}
+    this.setState({usersLoading:false});}
+  async login(){const st=this.state;if(st.busy)return;
+    if(!this.sbUrl()){if(st.pw===(this.props.adminPassword||'fsfinds')){sessionStorage.setItem('fsf_admin','1');this.setState({authed:true,pw:'',pwError:false});}else this.setState({pwError:true,loginErr:'Wrong password.'});return;}
+    const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return this.setState({pwError:true,loginErr:'Could not reach Supabase. Check the project URL and anon key.'});
+    this.setState({busy:true,pwError:false});
+    const {data,error}=await c.auth.signInWithPassword({email:st.email.trim(),password:st.pw});
+    if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
+    if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
+    this.setState({busy:false,authed:true,pw:''});this.loadUsers();}
+  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
+  openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:''},formError:''});}
+  saveDrawer(){const st=this.state,db={...st.db};
+    if(st.drawer==='find'){const f=st.ef;const pr=parseLink(f.link);
+      if(!f.name.trim())return this.setState({formError:'Add a name.'});if(!pr&&!f.itemId)return this.setState({formError:'Paste a valid Weidian, Taobao, 1688 or agent link.'});if(!f.seller)return this.setState({formError:'Create a seller first.'});
+      const qcPhotos=f.qcText.split(/\s+/).map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s));
+      const item={id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
+      const list=[...db.products];const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.unshift(item);db.products=list;this.saveDb(db,i>=0?'Find updated':'Find added');}
+    else{const s=st.es;if(!s.name.trim())return this.setState({formError:'Add a store name.'});
+      const code=(s.code||s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2)).toUpperCase();
+      const item={...s,id:s.id||s.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36).slice(-3),name:s.name.trim(),code};
+      const list=[...db.sellers];const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.push(item);db.sellers=list;this.saveDb(db,i>=0?'Seller updated':'Seller added');}
+    this.setState({drawer:null});}
+  renderVals(){
+    const st=this.state,db=st.db,mobile=st.w<900,w=st.w;
+    const real=st.events.filter(e=>!e.sample);const sampleOn=st.sample==null?real.length<30:st.sample;
+    if(sampleOn&&!this._sample)this._sample=sampleEvents(db.products);
+    const all=sampleOn?[...(this._sample||[]),...real]:real;
+    const now=Date.now(),R=st.range,from=now-R*864e5,prevFrom=from-R*864e5;
+    const cur=all.filter(e=>e.t>=from),prev=all.filter(e=>e.t>=prevFrom&&e.t<from);
+    const count=(arr,type)=>arr.filter(e=>e.type===type).length,uniq=arr=>new Set(arr.map(e=>e.vid)).size;
+    const views=arr=>arr.filter(e=>e.type==='view'||e.type==='visit').length;
+    const delta=(a,b)=>{if(!b)return{d:a?'New':'—',c:'#A1A0A6'};const p=Math.round((a-b)/b*100);return{d:(p>=0?'↑ ':'↓ ')+Math.abs(p)+'% vs prev.',c:p>=0?'#3DDC84':'#FF5A64'};};
+    const pv=count(cur,'view'),bc=count(cur,'buy');
+    const kdef=[['Visitors','ph:users-three',uniq(cur),uniq(prev)],['Page views','ph:eye',views(cur),views(prev)],['Buy clicks','ph:shopping-bag-open',bc,count(prev,'buy')],['Sign-up clicks','ph:user-plus',count(cur,'signup'),count(prev,'signup')],['Click rate','ph:cursor-click',pv?Math.round(bc/pv*1000)/10:0,0]];
+    const kpis=kdef.map((k,i)=>{const dd=i===4?{d:'Buy clicks ÷ product views',c:'#A1A0A6'}:delta(k[2],k[3]);return{label:k[0],icon:k[1],value:i===4?k[2]+'%':fmt(k[2]),delta:dd.d,deltaColor:dd.c};});
+    const nb=R<=30?R:Math.ceil(R/3),bucket=R*864e5/nb;const bins=Array.from({length:nb},(_,i)=>({v:0,c:0,start:from+i*bucket}));
+    cur.forEach(e=>{const i=Math.min(nb-1,Math.floor((e.t-from)/bucket));if(e.type==='view'||e.type==='visit')bins[i].v++;if(e.type==='buy')bins[i].c++;});
+    const mx=Math.max(1,...bins.map(b=>b.v));const fd=t=>new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const chart=bins.map(b=>({hv:(b.v/mx*100).toFixed(1)+'%',hc:(b.c/mx*100*3).toFixed(1)+'%',tip:`${fd(b.start)} · ${b.v} views · ${b.c} buy clicks`}));
+    const visits=cur.filter(e=>e.type==='visit');const cm={};visits.forEach(e=>{const k=e.cc||'??';cm[k]=cm[k]||{cc:e.cc||'—',name:e.country||'Unknown',n:0};cm[k].n++;});
+    const cl=Object.values(cm).sort((a,b)=>b.n-a.n).slice(0,8),cmax=cl[0]?cl[0].n:1,vt=visits.length||1;
+    const countries=cl.map(c=>({...c,n:fmt(c.n),pct:Math.round(c.n/vt*100)+'%',w:(c.n/cmax*100)+'%'}));
+    const byP={};cur.forEach(e=>{if(!e.id)return;byP[e.id]=byP[e.id]||{v:0,c:0};if(e.type==='view')byP[e.id].v++;if(e.type==='buy')byP[e.id].c++;});
+    const sName=id=>(db.sellers.find(s=>s.id===id)||{}).name||'—';
+    const topFinds=db.products.map(p=>({p,...(byP[p.id]||{v:0,c:0})})).sort((a,b)=>b.c-a.c||b.v-a.v).slice(0,8).map((x,i)=>({rank:i+1,name:x.p.name,seller:sName(x.p.seller),views:fmt(x.v),clicks:fmt(x.c),ctr:x.v?Math.round(x.c/x.v*100)+'%':'—',edit:()=>this.openFind(x.p)}));
+    const dm={mobile:0,desktop:0,tablet:0};visits.forEach(e=>{dm[e.dev]=(dm[e.dev]||0)+1;});
+    const devices=[['mobile','Mobile','#E5202F'],['desktop','Desktop','#8A8A92'],['tablet','Tablet','#3A3A40']].map(([k,l,c])=>({label:l,color:c,w:(dm[k]/vt*100)+'%',pct:Math.round(dm[k]/vt*100)+'%'}));
+    const rm={};visits.forEach(e=>{rm[e.ref]=(rm[e.ref]||0)+1;});const rl=Object.entries(rm).sort((a,b)=>b[1]-a[1]).slice(0,6),rmax=rl[0]?rl[0][1]:1;
+    const sources=rl.map(([n,v])=>({name:n==='direct'?'Direct / bookmarks':n,n:fmt(v),w:(v/rmax*100)+'%'}));
+    const byS={};cur.forEach(e=>{if(e.type==='buy'||e.type==='store'){const s=e.seller||(db.products.find(p=>p.id===e.id)||{}).seller;if(s)byS[s]=(byS[s]||0)+1;}});
+    const smax=Math.max(1,...Object.values(byS));
+    const sellerPerf=db.sellers.map(s=>({s,c:byS[s.id]||0})).sort((a,b)=>b.c-a.c).map(x=>({code:x.s.code,name:x.s.name,meta:fmt(x.c)+' clicks',w:(x.c/smax*100)+'%'}));
+    const pName=id=>(db.products.find(p=>p.id===id)||{}).name;
+    const recent=all.filter(e=>e.type!=='view'||e.id).sort((a,b)=>b.t-a.t).slice(0,10).map(e=>{const m=EV_META[e.type]||[e.type,'ph:dot','#1C1C20','#C9C8CC'];return{label:m[0],icon:m[1],bg:m[2],fg:m[3],detail:pName(e.id)||(e.seller?sName(e.seller):'')||e.q||e.page||e.ref||'',cc:e.cc||'—',ago:ago(e.t)};});
+    // finds
+    const q=st.fq.trim().toLowerCase(),clicksAll={};all.forEach(e=>{if(e.type==='buy'&&e.id)clicksAll[e.id]=(clicksAll[e.id]||0)+1;});
+    const findRows=db.products.filter(p=>(st.fSeller==='all'||p.seller===st.fSeller)&&(st.fCat==='all'||p.cat===st.fCat)&&(!q||(p.name+' '+sName(p.seller)).toLowerCase().includes(q))).map(p=>({
+      name:p.name,featured:!!p.featured,meta:`${sName(p.seller)} · ${(CATS.find(c=>c[0]===p.cat)||['',''])[1]} · ${p.platform} ${p.itemId}`,price:'$'+(+p.price||0).toFixed(2),qc:(p.qcPhotos&&p.qcPhotos.length)||p.qc||0,clicks:fmt(clicksAll[p.id]||0),
+      thumb:p.image?`url("${p.image}")`:'#1C1C20',icon:CAT_ICONS[p.cat]||'ph:package',iconOpacity:p.image?'0':'1',
+      edit:()=>this.openFind(p),dup:()=>{const copy={...p,id:'p'+Date.now().toString(36),name:p.name+' (copy)',createdAt:Date.now()};this.saveDb({...db,products:[copy,...db.products]},'Find duplicated');},
+      del:()=>this.setState({confirm:{title:'Delete this find?',text:`"${p.name}" will be removed from the site.`,run:()=>this.saveDb({...db,products:db.products.filter(x=>x.id!==p.id)},'Find deleted')}})}));
+    const sellerCards=db.sellers.map(s=>{const n=db.products.filter(p=>p.seller===s.id).length;return{...s,count:n,clicks:fmt(Object.entries(clicksAll).filter(([id])=>(db.products.find(p=>p.id===id)||{}).seller===s.id).reduce((a,[,v])=>a+v,0)),
+      edit:()=>this.openSeller(s),addFind:()=>this.openFind(null,s.id),del:()=>this.setState({confirm:{title:'Delete this seller?',text:n?`${s.name} and its ${n} finds will be removed from the site.`:`${s.name} will be removed from the site.`,run:()=>this.saveDb({...db,sellers:db.sellers.filter(x=>x.id!==s.id),products:db.products.filter(p=>p.seller!==s.id)},'Seller deleted')}})};});
+    // editor bindings
+    const ef=st.ef||{},es=st.es||{};const efParsedObj=parseLink(ef.link);
+    const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
+    const esSet={};['name','code','tag','badge','platform','shop','rating','ship','since','bio'].forEach(k=>{esSet[k]=e=>{const v=e.target.value;this.setState(S=>({es:{...S.es,[k]:v},formError:''}));};});
+    const qcUrls=(ef.qcText||'').split(/\s+/).filter(s=>/^https?:\/\//.test(s));
+    // settings
+    const sd=st.settingsDraft||{agentName:db.settings.agentName||'CSSBuy',promoCode:db.settings.promoCode||'FSFINDS',signupLink:db.settings.signupLink||'https://cssb.uy/24Fo',adminPassword:db.settings.adminPassword||'',showCouponPopup:db.settings.showCouponPopup??true};
+    const setSD=(k,v)=>this.setState(S=>({settingsDraft:{...(S.settingsDraft||sd),[k]:v}}));
+    const settingFields=[['agentName','Agent name','text'],['promoCode','Promo code','text'],['signupLink','Sign-up / affiliate link','text']].map(([k,l,t])=>({label:l,type:t,value:sd[k],onChange:e=>setSD(k,e.target.value)}));
+    const sec=st.section;
+    const navItems=[['dash','Dashboard','ph:chart-line-up',''],['finds','Finds','ph:package',db.products.length],['sellers','Sellers','ph:storefront',db.sellers.length],['users','Members','ph:users-three',st.users.length||''],['cats','Categories','ph:squares-four',''],['settings','Settings','ph:gear-six','']].map(([id,l,ic,c])=>({label:l,icon:ic,count:String(c),bg:sec===id?'rgba(229,32,47,.14)':'transparent',fg:sec===id?'#F5F4F2':'#A1A0A6',go:()=>this.setState({section:id})}));
+    const titles={users:['Members','People who registered on the site'],cats:['Categories','Photos shown on the home page'],dash:['Dashboard','How visitors use FSFINDS'],finds:['Finds',`${db.products.length} finds in the catalog`],sellers:['Sellers',`${db.sellers.length} partner sellers`],settings:['Settings','Affiliate links, password and backups']};
+    const ranges=[[7,'7d'],[30,'30d'],[90,'90d']].map(([v,l])=>({label:l,bg:R===v?'#E5202F':'transparent',fg:R===v?'#fff':'#A1A0A6',select:()=>this.setState({range:v})}));
+    return{
+      locked:!st.authed&&!st.checking,unlocked:st.authed,email:st.email,onEmail:e=>this.setState({email:e.target.value,pwError:false}),loginError:st.loginErr||'Wrong password.',loginCta:st.busy?'Signing in…':'Sign in',
+      loginHint:this.sbUrl()?'Use the admin email and password you created in Supabase.':'Supabase is not connected yet. Local preview password: fsfinds',pw:st.pw,onPw:e=>this.setState({pw:e.target.value,pwError:false}),pwKey:e=>{if(e.key==='Enter')this.login();},login:()=>this.login(),pwError:st.pwError,pwBorder:st.pwError?'#E5202F':'#2A2A30',
+      logout:()=>{sessionStorage.removeItem('fsf_admin');if(SB)SB.auth.signOut();this.setState({authed:false});},
+      mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',
+      ...(()=>{const on=!!this.sbUrl(),uq=st.uq.trim().toLowerCase(),wk=Date.now()-7*864e5,fdt=t=>t?new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+        const list=st.users.filter(u=>!uq||((u.email||'')+' '+(u.country||'')).toLowerCase().includes(uq));
+        return{usersOn:on,usersOff:!on,uq:st.uq,onUq:e=>this.setState({uq:e.target.value}),loadUsers:()=>this.loadUsers(),usersRefreshLabel:st.usersLoading?'Loading…':'Refresh',usersErr:st.usersErr,
+          userKpiCols:`repeat(${w>=900?4:2},minmax(0,1fr))`,
+          userKpis:[['Members',st.users.length],['New this week',st.users.filter(u=>new Date(u.created_at).getTime()>wk).length],['Active this week',st.users.filter(u=>u.last_seen&&new Date(u.last_seen).getTime()>wk).length],['Saved finds',st.users.reduce((a,u)=>a+u.items,0)]].map(([l,v])=>({label:l,value:fmt(v)})),
+          userRows:list.map(u=>({initial:(u.email||'?')[0].toUpperCase(),email:u.email||'—',country:u.country||'—',joined:fdt(u.created_at),seen:u.last_seen?ago(new Date(u.last_seen).getTime())+' ago':'—',items:u.items,sellers:u.sellers})),
+          noUsers:list.length===0,noUsersLabel:st.usersLoading?'Loading members…':st.usersLoaded?'No members yet.':'Press Refresh to load members.',
+          exportUsers:()=>{const rows=[['email','country','joined','last_seen','saved_finds','saved_sellers'],...st.users.map(u=>[u.email,u.country||'',u.created_at||'',u.last_seen||'',u.items,u.sellers])];
+            const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fsfinds-members.csv';a.click();this.showToast('CSV downloaded');}};})(),
+      catCards:CATS.map(([id,label])=>{const img=(db.settings.catImages||{})[id]||'';const setImg=v=>{const ci={...(db.settings.catImages||{})};if(v)ci[id]=v;else delete ci[id];this.saveDb({...db,settings:{...db.settings,catImages:ci}},v?'Photo saved':'Photo removed');};
+        return{label,icon:CAT_ICONS[id],img,imgBg:img?`url("${img}")`:'none',hasImg:!!img,noImg:!img,count:db.products.filter(p=>p.cat===id).length,tileBg:img?'radial-gradient(circle at 50% 42%,#FFFFFF,#E4E2DF 78%)':'radial-gradient(circle at 50% 55%,rgba(229,32,47,.22),#1C1C20 68%)',
+          remove:()=>setImg(''),setUrl:()=>{const u=prompt('Image URL for '+label,img||'https://');if(u&&/^https?:\/\//.test(u))setImg(u.trim());},
+          upload:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,480/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);try{setImg(cv.toDataURL('image/png'));}catch(err){this.showToast('Image too large');}};im.src=r.result;};r.readAsDataURL(f);}};}),
+      showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),newSeller:()=>this.openSeller(null),
+      ranges,sampleOn,toggleSample:()=>this.setState({sample:!sampleOn}),sampleTrack:sampleOn?'#E5202F':'#3A3A40',sampleKnob:sampleOn?'14px':'2px',
+      sampleNote:`Showing sample data mixed with ${real.length} real events from this browser. Turn it off to see only real activity.`,
+      kpis,kpiCols:`repeat(${w>=1200?5:w>=700?3:2},minmax(0,1fr))`,mainCols:w>=1100?'minmax(0,1.6fr) minmax(0,1fr)':'minmax(0,1fr)',
+      chart,barGap:nb>40?'1px':'4px',chartStart:fd(from),chartEnd:'Today',countries,noCountries:countries.length===0,topFinds,devices,sources,sellerPerf,recent,noRecent:recent.length===0,
+      fq:st.fq,onFq:e=>this.setState({fq:e.target.value}),fSeller:st.fSeller,onFSeller:e=>this.setState({fSeller:e.target.value}),fCat:st.fCat,onFCat:e=>this.setState({fCat:e.target.value}),
+      sellerOpts:db.sellers.map(s=>({id:s.id,name:s.name})),catOpts:CATS.map(([id,label])=>({id,label})),findRows,noFinds:findRows.length===0,sellerCards,
+      drawerOpen:!!st.drawer,drawerTitle:st.drawer==='find'?(ef.id?'Edit find':'New find'):(es.id?'Edit seller':'New seller'),editingFind:st.drawer==='find',editingSeller:st.drawer==='seller',
+      closeDrawer:()=>this.setState({drawer:null}),saveDrawer:()=>this.saveDrawer(),stop:e=>e.stopPropagation(),formError:st.formError,
+      ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,
+      efHasImage:!!(ef.image&&/^https?:/.test(ef.image)),efImageBg:`url("${ef.image}")`,efQcCount:qcUrls.length+' added',efQcThumbs:qcUrls.slice(0,12).map(u=>({bg:`url("${u}")`})),
+      efToggleFeatured:()=>this.setState(S=>({ef:{...S.ef,featured:!S.ef.featured}})),efFeatTrack:ef.featured?'#E5202F':'#3A3A40',efFeatKnob:ef.featured?'19px':'3px',
+      confirmOpen:!!st.confirm,confirmTitle:st.confirm?st.confirm.title:'',confirmText:st.confirm?st.confirm.text:'',cancelConfirm:()=>this.setState({confirm:null}),doConfirm:()=>{st.confirm&&st.confirm.run();this.setState({confirm:null});},
+      settingFields,togglePopupSetting:()=>setSD('showCouponPopup',!sd.showCouponPopup),popupTrack:sd.showCouponPopup?'#E5202F':'#3A3A40',popupKnob:sd.showCouponPopup?'19px':'3px',
+      saveSettings:()=>{const s={...db.settings,agentName:sd.agentName,promoCode:sd.promoCode,signupLink:sd.signupLink,showCouponPopup:sd.showCouponPopup};this.saveDb({...db,settings:s},'Settings saved');this.setState({settingsDraft:null});},
+      exportData:()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fsfinds-backup.json';a.click();this.showToast('Backup downloaded');},
+      importData:e=>{const f=e.target.files&&e.target.files[0];if(!f)return;f.text().then(t=>{const d=JSON.parse(t);if(!d.sellers||!d.products)throw 0;this.saveDb({settings:{},...d},'Backup restored');}).catch(()=>this.showToast('That file is not a valid backup'));e.target.value='';},
+      clearEvents:()=>this.setState({confirm:{title:'Clear analytics?',text:'All recorded visits and clicks in this browser will be deleted.',run:()=>{localStorage.removeItem('fsf_events');this.setState({events:[]});this.showToast('Analytics cleared');}}}),
+      resetCatalog:()=>this.setState({confirm:{title:'Reset the catalog?',text:'Your sellers and finds will be replaced by the starter catalog. Settings are kept.',run:()=>this.saveDb({...db,sellers:STARTER_SELLERS,products:STARTER_PRODUCTS},'Catalog reset')}}),
+      toast:st.toast,toastY:st.toastOn?'0px':'90px',toastOpacity:st.toastOn?'1':'0'
+    };
+  }
+}
+</script>
+</body>
+</html>
