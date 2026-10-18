@@ -1,5 +1,5 @@
 {
- "version": 1792351744980,
+ "version": 1792352430059,
  "sellers": [
   {
    "id": "northline",
@@ -18,16 +18,16 @@
   },
   {
    "id": "loop",
-   "name": "Loop Knit Co.",
+   "name": "Vans Factory",
    "badge": "New",
-   "tag": "Knitwear & sets",
+   "tag": "Vans",
    "platform": "Taobao",
    "rating": "4.9",
-   "ship": "2–3 days",
-   "since": "2024",
-   "code": "LK",
+   "ship": "1–2 days",
+   "since": "2026",
+   "code": "VF",
    "shop": "71933025",
-   "bio": "Wool and cotton knits made in small batches. Colours are photographed in daylight."
+   "bio": ""
   }
  ],
  "products": [
