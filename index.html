@@ -720,11 +720,15 @@ class Component extends DCLogic {
   routeTick(){const s=this.state,k=[s.page,s.sellerId,s.productId,s.tool,s.cat,s.query].join('|');if(k===this._rk)return;const ps=this._rs||{};this._rk=k;this._rs={...s};
     const replace=!this._first||!!this.popping||(ps.page===s.page&&ps.sellerId===s.sellerId&&ps.productId===s.productId&&ps.tool===s.tool);
     this._first=true;queueMicrotask(()=>this.applyRoute(replace));}
-  applyRoute(replace){const s=this.state;this.syncUrl(replace);this.popping=false;
+  applyRoute(replace){const s=this.state;this.syncUrl(replace);this.popping=false;if(this.presence&&this.presenceOn){try{this.presence.track(this.presenceInfo());}catch(e){}}
     const titles={home:'FSFINDS · Verified finds from partner sellers',shop:'Shop · FSFINDS',sellers:'Sellers · FSFINDS',tools:'Tools · FSFINDS',saved:'Account · FSFINDS'};
     let t=titles[s.page];if(s.page==='seller'){const x=SELLERS.find(v=>v.id===s.sellerId);t=(x?x.name:'Seller')+' · FSFINDS';}if(s.page==='product'){const x=PRODUCTS.find(v=>String(v.id)===String(s.productId));t=(x?x.name:'Find')+' · FSFINDS';}
     if(t&&document.title!==t)document.title=t;}
+  presenceInfo(){const g=fsGeo()||{};return{page:fsPath(this.state)||'home',cc:g.cc||'',country:g.country||'',dev:innerWidth<760?'mobile':innerWidth<1100?'tablet':'desktop',at:Date.now()};}
+  startPresence(c){if(this.presence)return;let vid=localStorage.getItem('fsf_vid');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('fsf_vid',vid);}
+    try{const ch=c.channel('fsf-online',{config:{presence:{key:vid}}});this.presence=ch;ch.subscribe(s=>{if(s==='SUBSCRIBED'){this.presenceOn=true;ch.track(this.presenceInfo());}});}catch(e){}}
   initAuth(n=0){const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(this.sbUrl()&&n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);return;}
+    this.startPresence(c);
     c.auth.getSession().then(({data})=>this.setUser(data&&data.session?data.session.user:null));this.authSub=c.auth.onAuthStateChange((_e,s)=>this.setUser(s?s.user:null));}
   setUser(u){const prev=this.state.user;this.setState({user:u});if(u&&(!prev||prev.id!==u.id)){this.pullFavs(u);const g=fsGeo()||{};SB&&SB.from('profiles').upsert({id:u.id,email:u.email,last_seen:new Date().toISOString(),country:g.country||null,cc:g.cc||null}).then(()=>{},()=>{});}}
   setLang(l){this.setState({lang:l});if(window.FSFI18N)window.FSFI18N.set(l);fsTrack('lang',{lang:l});}
@@ -763,7 +767,7 @@ class Component extends DCLogic {
     const t0=performance.now();const tick=t=>{const k=Math.min(1,(t-t0)/1500);this.setState({count:1-Math.pow(1-k,3)});if(k<1)this.raf=requestAnimationFrame(tick);};this.raf=requestAnimationFrame(tick);
     this.t2=setTimeout(()=>this.setState({stepsOn:true}),700);
   }
-  componentWillUnmount(){window.removeEventListener('popstate',this.onPop);clearTimeout(this.t);clearTimeout(this.t2);clearTimeout(this.tt);cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('scroll',this.onScroll);window.removeEventListener('keydown',this.onKey);}
+  componentWillUnmount(){try{this.presence&&this.presence.unsubscribe();}catch(e){}window.removeEventListener('popstate',this.onPop);clearTimeout(this.t);clearTimeout(this.t2);clearTimeout(this.tt);cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('scroll',this.onScroll);window.removeEventListener('keydown',this.onKey);}
   openSearch(){this.setState({searchOpen:true});setTimeout(()=>this.searchEl&&this.searchEl.focus(),40);}
   agentName(){return SETTINGS.agentName||this.props.agentName||'CSSBuy';}
   code(){return SETTINGS.promoCode||this.props.promoCode||'FSFINDS';}
@@ -772,7 +776,7 @@ class Component extends DCLogic {
   showToast(msg){clearTimeout(this.tt);this.setState({toast:msg,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
   toggleFav(id){const had=this.state.favs.includes(id);const favs=had?this.state.favs.filter(x=>x!==id):[...this.state.favs,id];localStorage.setItem('fsf_favs',JSON.stringify(favs));this.pushFavs(favs,this.state.favSellers);fsTrack(had?'unfav':'fav',{id});this.setState({favs});this.showToast(had?'Removed from saved':'Saved to your list');}
   card(p){const s=sellerOf(p.seller);const fav=this.state.favs.includes(p.id);
-    return{...p,sellerName:s.name,priceLabel:'$'+p.price.toFixed(2),favIcon:fav?'♥':'♡',favBg:fav?'#E5202F':'rgba(11,11,13,.6)',
+    return{...p,sellerName:s.name,priceLabel:'$'+p.price.toFixed(2),cnyLabel:'¥'+(p.priceCny||Math.round(p.price*7.1)),favIcon:fav?'♥':'♡',favBg:fav?'#E5202F':'rgba(11,11,13,.6)',
       open:()=>this.go('product',{productId:p.id}),toggleFav:e=>{e&&e.stopPropagation&&e.stopPropagation();this.toggleFav(p.id);}};}
   closePopup(){localStorage.setItem('fsf_popup_seen','1');this.setState({popup:false});}
   copy(text,key,msg){try{navigator.clipboard.writeText(text);}catch(e){}this.setState({copied:key});this.showToast(msg||'Copied');setTimeout(()=>this.setState(s=>s.copied===key?{copied:null}:null),1600);}

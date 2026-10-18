@@ -19,6 +19,7 @@ body{margin:0;background:#0B0B0D;color:#F5F4F2;font-family:'DM Sans',system-ui,s
 a{color:#F5F4F2;text-decoration:none}a:hover{color:#FF3B47}
 input,select,button,textarea{font-family:inherit}*{box-sizing:border-box}
 select option{background:#151518;color:#F5F4F2}
+@keyframes livePulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.8);opacity:0}}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
@@ -81,6 +82,18 @@ select option{background:#151518;color:#F5F4F2}
 <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
   <div style="display:flex;flex-direction:column;gap:16px;animation:rise .35s ease both">
     <sc-if value="{{ sampleOn }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:10px;align-items:center;background:rgba(229,32,47,.08);border:1px solid rgba(229,32,47,.3);border-radius:14px;padding:12px 14px;font-size:13px;color:#F5F4F2"><iconify-icon icon="ph:info" style="font-size:18px;color:#FF5A64;flex:none"></iconify-icon><span>{{ sampleNote }}</span></div></sc-if>
+    <div style="position:relative;overflow:hidden;background:#151518;border:1px solid #232327;border-radius:20px;padding:18px 20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+      <div style="position:absolute;left:-80px;top:-120px;width:280px;height:280px;border-radius:50%;background:radial-gradient(closest-side,rgba(61,220,132,.16),transparent);pointer-events:none"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:14px;min-width:180px">
+        <span style="position:relative;width:12px;height:12px;flex:none"><span style="position:absolute;inset:0;border-radius:50%;background:#3DDC84;animation:livePulse 1.8s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:#3DDC84"></span></span>
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#A1A0A6;font-weight:600">Live now</span><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1">{{ liveCount }}</span><span style="font-size:12px;color:#6E6D73">{{ liveSub }}</span></div>
+      </div>
+      <div style="position:relative;flex:1;min-width:240px;display:flex;flex-direction:column;gap:8px">
+        <sc-if value="{{ liveEmpty }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;color:#6E6D73">Nobody on the site right now.</span></sc-if>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ livePages }}" as="l" hint-placeholder-count="0"><span style="display:flex;align-items:center;gap:6px;background:#0B0B0D;border:1px solid #232327;border-radius:999px;padding:6px 11px;font-size:12px"><span style="color:#F5F4F2;font-weight:600">{{ l.label }}</span><span style="color:#3DDC84;font-weight:700">{{ l.n }}</span></span></sc-for></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ liveCountries }}" as="l" hint-placeholder-count="0"><span style="display:flex;align-items:center;gap:6px;background:#0B0B0D;border:1px solid #232327;border-radius:999px;padding:6px 11px;font-size:12px;color:#A1A0A6"><iconify-icon icon="{{ l.flag }}" style="font-size:14px;border-radius:2px;overflow:hidden"></iconify-icon>{{ l.label }}<span style="color:#F5F4F2;font-weight:700">{{ l.n }}</span></span></sc-for></div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:12px">
       <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
         <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s,transform .25s" style-hover="border-color:#3A3A40;transform:translateY(-2px)">
@@ -363,15 +376,31 @@ select option{background:#151518;color:#F5F4F2}
           <div style="display:flex;flex-direction:column;gap:10px;background:#0B0B0D;border:1px solid #232327;border-radius:14px;padding:14px">
             <span style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:#F5F4F2"><iconify-icon icon="ph:images-square" style="font-size:20px;color:#FF5A64"></iconify-icon>Import from Yupoo</span>
             <span style="font-size:12px;color:#A1A0A6;line-height:1.5">Paste a store, category or album link. Each album becomes a find with its title, price (if written in the title or description) and up to 8 photos, copied to your GitHub.</span>
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:8px">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:8px;align-items:end;padding-top:18px">
               <input value="{{ ypUrl }}" onChange="{{ onYpUrl }}" placeholder="https://store.x.yupoo.com/categories/…" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-size:13px" style-focus="border-color:#E5202F">
-              <input type="number" min="1" max="100" value="{{ ypMax }}" onChange="{{ onYpMax }}" title="Max albums" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-size:13px" style-focus="border-color:#E5202F">
+              <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;color:#A1A0A6;margin-top:-18px">Max albums<input type="number" min="1" max="100" value="{{ ypMax }}" onChange="{{ onYpMax }}" title="Max albums" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-size:13px" style-focus="border-color:#E5202F"></label>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <button onClick="{{ importYupoo }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;opacity:{{ ypOpacity }}" style-hover="background:#FF3B47"><iconify-icon icon="ph:cloud-arrow-down"></iconify-icon>{{ ypLabel }}</button>
+              <button onClick="{{ ypLoadCats }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:folders"></iconify-icon>Pick categories</button>
               <sc-if value="{{ ypRunning }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ypStop }}" style="border:1px solid #2A2A30;background:#151518;color:#A1A0A6;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">Stop</button></sc-if>
-              <span style="font-size:12px;color:#6E6D73">Max albums per run</span>
+              <span style="font-size:12px;color:#6E6D73;line-height:1.5">Run again to import the next batch.</span>
             </div>
+            <sc-if value="{{ ypHasCats }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #232327;padding-top:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:12px;font-weight:700;color:#A1A0A6;text-transform:uppercase;letter-spacing:.06em">{{ ypCatsTitle }}</span><button onClick="{{ ypToggleAll }}" style="border:none;background:none;color:#FF5A64;font-size:12px;font-weight:700;cursor:pointer">{{ ypAllLabel }}</button></div>
+                <div style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto">
+                  <sc-for list="{{ ypCatRows }}" as="y" hint-placeholder-count="0">
+                    <div style="display:grid;grid-template-columns:auto minmax(0,1fr) 130px;gap:10px;align-items:center;background:#151518;border:1px solid {{ y.border }};border-radius:10px;padding:8px 10px">
+                      <button onClick="{{ y.toggle }}" style="width:20px;height:20px;border-radius:6px;border:1px solid {{ y.border }};background:{{ y.box }};color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">{{ y.check }}</button>
+                      <span onClick="{{ y.toggle }}" style="cursor:pointer;font-size:13px;color:#F5F4F2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ y.name }}</span>
+                      <select value="{{ y.cat }}" onChange="{{ y.setCat }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:8px;padding:6px 8px;font-size:12px"><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select>
+                    </div>
+                  </sc-for>
+                </div>
+                <button onClick="{{ ypImportCats }}" style="display:flex;align-items:center;justify-content:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:12px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;opacity:{{ ypCatsOpacity }}" style-hover="background:#FF3B47"><iconify-icon icon="ph:cloud-arrow-down"></iconify-icon>{{ ypCatsCta }}</button>
+              </div>
+            </sc-if>
           </div>
           <span style="font-size:13px;color:#A1A0A6;line-height:1.6">Paste one product per line: the link, plus the name and price if you have them. Example:<br><span style="color:#F5F4F2;font-family:ui-monospace,monospace;font-size:12px">Compression Tee | https://item.taobao.com/item.htm?id=123… | 18.90</span></span>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -467,6 +496,22 @@ function parseStore(u){u=(u||'').trim();let m;
   if((m=u.match(/shop(\d+)\.(?:world\.)?taobao\.com/i))||(m=u.match(/taobao\.com\/.*?[?&](?:shop_?id|user_number_id)=(\d+)/i)))return{platform:'Taobao',shop:m[1]};
   if((m=u.match(/\/\/([a-z0-9-]+)\.1688\.com/i))&&!/^(detail|www|s|m)$/i.test(m[1]))return{platform:'1688',shop:m[1]};
   return null;}
+function fsPrice(title,desc){
+  const clean=s=>(s||'').replace(/[，,]/g,'.').replace(/\s+/g,' ');
+  const tests=[
+    [/(?:¥|￥|rmb|cny|yuan)\s*[:：]?\s*(\d{1,5}(?:\.\d{1,2})?)/i,'cny'],
+    [/(\d{1,5}(?:\.\d{1,2})?)\s*(?:¥|￥|元|rmb|cny|yuan)/i,'cny'],
+    [/(?:\$|usd)\s*[:：]?\s*(\d{1,4}(?:\.\d{1,2})?)/i,'usd'],
+    [/(\d{1,4}(?:\.\d{1,2})?)\s*(?:\$|usd|dollars?)/i,'usd'],
+    [/(?:price|preço|preco|价格|售价|批发价|p)\s*[:：=\-]?\s*(\d{2,5}(?:\.\d{1,2})?)(?!\d)/i,'cny'],
+    [/💰\s*(\d{2,5})/,'cny'],
+    [/[【\[(（]\s*(\d{2,5})\s*[】\])）]/,'cny']];
+  for(const src of [clean(title),clean(desc)]){for(const [re,cur] of tests){const m=src.match(re);if(m){const v=+m[1];if(v>0&&v<20000)return{value:v,cur,token:m[0]};}}}
+  const t=clean(title).replace(/\b(19|20)\d{2}\b/g,' ');
+  const nums=[...t.matchAll(/(?:^|[\s#|\-–—~:])(\d{2,4})(?=$|[\s|\-–—~])/g)].map(m=>+m[1]).filter(v=>v>=30&&v<=3000);
+  if(nums.length===1)return{value:nums[0],cur:'cny',token:String(nums[0])};
+  return null;}
+function fsCleanTitle(t,token){let s=(t||'');if(token)s=s.replace(token,' ');return s.replace(/[【\[(（]\s*[】\])）]/g,' ').replace(/^[\s\-–—|:#]+|[\s\-–—|:#]+$/g,'').replace(/\s+/g,' ').trim();}
 const PLAT_NAME={weidian:'Weidian',taobao:'Taobao','1688':'1688'};
 const STARTER_SELLERS=[
 {id:'northline',name:'Northline Studio',badge:'Top rated',tag:'Heavyweight basics & fleece',platform:'Weidian',rating:'4.9',ship:'1–2 days',since:'2023',code:'NS',shop:'1652189023',bio:'Cotton tees and fleece in 400–500 gsm. Consistent sizing and quick restocks on core colours.'},
@@ -498,9 +543,12 @@ const EV_META={visit:['Visit','ph:globe-hemisphere-west','#1C1C20','#C9C8CC'],vi
 
 class Component extends DCLogic {
   state={authed:false,checking:true,email:'',pw:'',pwError:false,loginErr:'',busy:false,section:'dash',range:30,sample:null,w:window.innerWidth,
-    db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null,dirty:localStorage.getItem('fsf_dirty')==='1',uploading:'',publishing:false,qcPending:[],qcMissing:[]};
+    db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null,live:[],dirty:localStorage.getItem('fsf_dirty')==='1',uploading:'',publishing:false,qcPending:[],qcMissing:[]};
   loadDb(){try{const d=JSON.parse(localStorage.getItem('fsf_db')||'null');if(d&&d.sellers)return{settings:{},...d};}catch(e){}return{sellers:STARTER_SELLERS,products:STARTER_PRODUCTS,settings:{}};}
   loadEvents(){return [];}
+  startLive(){if(this.liveCh)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;
+    try{const ch=c.channel('fsf-online');this.liveCh=ch;
+      ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();const list=Object.keys(st).map(k=>({vid:k,...((st[k]||[])[0]||{})}));this.setState({live:list});}).subscribe();}catch(e){}}
   async fetchEvents(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const since=new Date(Date.now()-180*864e5).toISOString();let all=[];
     try{for(let i=0;i<60;i++){const {data,error}=await c.from('events').select('created_at,type,vid,cc,country,dev,ref,data').gte('created_at',since).order('created_at',{ascending:true}).range(i*1000,i*1000+999);if(error)throw error;all=all.concat(data||[]);if(!data||data.length<1000)break;}
       this.setState({events:all.map(e=>({...(e.data||{}),t:Date.parse(e.created_at),type:e.type,vid:e.vid,cc:e.cc||'',country:e.country||'',dev:e.dev,ref:e.ref||'direct'})),eventsErr:''});}
@@ -531,7 +579,7 @@ class Component extends DCLogic {
   isAdmin(u){if(!u)return false;const list=(this.props.adminEmails||'flavianobusiness@gmail.com').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return list.includes((u.email||'').toLowerCase())||(u.app_metadata&&u.app_metadata.role==='admin');}
   initAuth(n=0){if(!this.sbUrl()){this.setState({checking:false,authed:sessionStorage.getItem('fsf_admin')==='1'});return;}
     const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);else this.setState({checking:false});return;}
-    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok){this.loadUsers();this.loadQc();this.fetchEvents();}});}
+    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok){this.loadUsers();this.loadQc();this.fetchEvents();this.startLive();}});}
   async loadUsers(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;this.setState({usersLoading:true,usersErr:''});
     try{const [p,f]=await Promise.all([c.from('profiles').select('*').order('created_at',{ascending:false}).limit(1000),c.from('favorites').select('user_id,items,sellers').limit(1000)]);
       if(p.error)throw p.error;const fav={};((f&&f.data)||[]).forEach(r=>{fav[r.user_id]=r;});
@@ -545,7 +593,7 @@ class Component extends DCLogic {
     const {data,error}=await c.auth.signInWithPassword({email:st.email.trim(),password:st.pw});
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
-    this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();}
+    this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();this.startLive();}
   openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',buyUrl:p.buyUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:'',storeUrl:'',logo:''},formError:''});}
   bulkParse(){const st=this.state,db=st.db,seen=new Set(db.products.map(p=>p.platform+':'+p.itemId));
@@ -554,24 +602,32 @@ class Component extends DCLogic {
       rest.forEach(s=>{const n=s.replace(/[$¥,\s]/g,'').replace(/usd|cny|rmb/ig,'');if(!price&&/^\d+(\.\d+)?$/.test(n))price=s.includes('¥')||/cny|rmb/i.test(s)?+(+n/7.1).toFixed(2):+n;else if(!name&&/[a-z]/i.test(s))name=s;});
       const dup=pr&&seen.has(pr.platform+':'+pr.id);if(pr)seen.add(pr.platform+':'+pr.id);
       return{pr,price,name,dup,line};});}
-  async importYupoo(){const st=this.state;const url=(st.ypUrl||'').trim();if(!/yupoo\.com/i.test(url))return this.setState({formError:'Paste a Yupoo link (store, category or album).'});
+  async ypLoadCats(){const url=(this.state.ypUrl||'').trim();if(!/yupoo\.com/i.test(url))return this.setState({formError:'Paste the Yupoo store link first.'});
     const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return this.setState({formError:'Supabase not connected'});
-    this.setState({ypBusy:'Reading Yupoo…',formError:''});
-    try{const {albums}=await fsInvoke(c,{action:'yupoo-list',url});if(!albums||!albums.length)throw new Error('No albums found on that page.');
-      const have=new Set(this.state.db.products.map(p=>p.srcId));const todo=albums.filter(al=>!have.has('yupoo:'+al.id)).slice(0,+st.ypMax||40);
-      if(!todo.length)throw new Error('All albums on that page are already imported.');
-      let added=0;const sName=(this.state.db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'seller';
+    this.setState({ypBusy:'Loading categories…',formError:''});
+    try{const {categories}=await fsInvoke(c,{action:'yupoo-cats',url});if(!categories||!categories.length)throw new Error('No categories found on that store.');
+      const guess=n=>{n=n.toLowerCase();return /shoe|sneaker|jordan|dunk|yeezy|boot|鞋/.test(n)?'shoes':/hood|zip|crew|sweat|卫衣/.test(n)?'hoodies':/pant|short|jean|jogger|cargo|裤/.test(n)?'pants':/jacket|coat|puffer|vest|外套/.test(n)?'outerwear':/bag|cap|hat|belt|wallet|sock|glass|watch|包|帽/.test(n)?'accessories':/tee|shirt|tank|top|polo|long|t恤/.test(n)?'tops':this.state.bulkCat||'tops';};
+      this.setState({ypBusy:'',ypCats:categories.map(x=>({...x,on:false,cat:guess(x.name)}))});}
+    catch(e){this.setState({ypBusy:'',formError:e.message});}}
+  async importYupoo(targets){const st=this.state;targets=targets||[{url:(st.ypUrl||'').trim(),cat:null}];
+    if(!targets.length||!targets.every(t=>/yupoo\.com/i.test(t.url)))return this.setState({formError:'Paste a Yupoo link (store, category or album).'});
+    const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return this.setState({formError:'Supabase not connected'});
+    this.setState({ypBusy:'Reading Yupoo…',formError:''});this.ypCancel=false;
+    try{let todo=[];const have=new Set(this.state.db.products.map(p=>p.srcId));
+      for(const t of targets){const {albums}=await fsInvoke(c,{action:'yupoo-list',url:t.url});(albums||[]).forEach(al=>{if(!have.has('yupoo:'+al.id)&&!todo.some(x=>x.id===al.id))todo.push({...al,cat:t.cat});});}
+      todo=todo.slice(0,+st.ypMax||40);if(!todo.length)throw new Error('Nothing new to import on that page.');
+      let added=0,noPrice=0;const sName=(this.state.db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'Find';
       for(let i=0;i<todo.length;i++){if(this.ypCancel)break;const al=todo[i];this.setState({ypBusy:`Importing ${i+1}/${todo.length}…`});
         try{const r=await fsInvoke(c,{action:'yupoo-album',url:al.url,folder:'media/yupoo/'+((st.bulkSeller||'finds').replace(/[^a-z0-9-]/gi,'')||'finds'),max:8});
-          const title=(r.title||al.title||sName+' item').trim();const txt=title+'\n'+(r.desc||'');
-          const pm=txt.match(/(?:¥|￥|rmb|cny)\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:¥|￥|rmb|cny|元)/i),um=txt.match(/\$\s*(\d+(?:\.\d+)?)/);
-          const cny=pm?+(pm[1]||pm[2]):0,usd=um?+um[1]:cny?+(cny/7.1).toFixed(2):0;
+          const rawTitle=(r.title||al.title||sName).trim();const pr=fsPrice(rawTitle,r.desc||'');if(!pr)noPrice++;
+          const cny=pr?(pr.cur==='cny'?pr.value:Math.round(pr.value*7.1)):0,usd=pr?(pr.cur==='usd'?pr.value:+(pr.value/7.1).toFixed(2)):0;
+          const title=fsCleanTitle(rawTitle,pr&&rawTitle.includes(pr.token)?pr.token:'')||rawTitle;
           const lk=parseLink(((r.desc||'').match(/https?:\/\/\S+/g)||[]).find(x=>parseLink(x))||'');
-          const n=title.toLowerCase(),cat=/shoe|sneaker|jordan|dunk|yeezy|boot/.test(n)?'shoes':/hood|zip|crew/.test(n)?'hoodies':/pant|short|jean|jogger|cargo/.test(n)?'pants':/jacket|coat|puffer|vest/.test(n)?'outerwear':/bag|cap|hat|belt|wallet|sock|glass/.test(n)?'accessories':st.bulkCat;
-          const desc=(r.desc||'').split('\n').map(s=>s.trim()).filter(s=>s&&!/https?:\/\//.test(s)).join('\n').slice(0,400);
-          const db={...this.state.db};db.products=[{id:'p'+Date.now().toString(36)+i,name:title.replace(/\s+/g,' ').slice(0,90),cat,seller:st.bulkSeller,price:usd,priceCny:cny||undefined,kg:0,platform:lk?lk.platform:'',itemId:lk?lk.id:'',image:r.images[0]||null,photos:r.images.slice(1),desc,qcPhotos:[],qc:0,featured:false,buyUrl:'',srcId:'yupoo:'+al.id,createdAt:Date.now()},...db.products];
+          const n=title.toLowerCase(),cat=al.cat||(/shoe|sneaker|jordan|dunk|yeezy|boot/.test(n)?'shoes':/hood|zip|crew/.test(n)?'hoodies':/pant|short|jean|jogger|cargo/.test(n)?'pants':/jacket|coat|puffer|vest/.test(n)?'outerwear':/bag|cap|hat|belt|wallet|sock|glass/.test(n)?'accessories':st.bulkCat);
+          const desc=(r.desc||'').split('\n').map(s=>s.trim()).filter(s=>s&&!/https?:\/\//.test(s)&&!(pr&&s===pr.token)).join('\n').slice(0,400);
+          const db={...this.state.db};db.products=[{id:'p'+Date.now().toString(36)+i,name:title.slice(0,90),cat,seller:st.bulkSeller||'',price:usd,priceCny:cny||undefined,kg:0,platform:lk?lk.platform:'',itemId:lk?lk.id:'',image:r.images[0]||null,photos:r.images.slice(1),desc,qcPhotos:[],qc:0,featured:false,buyUrl:'',srcId:'yupoo:'+al.id,createdAt:Date.now()},...db.products];
           this.saveDb(db);added++;}catch(e){}}
-      this.ypCancel=false;this.setState({ypBusy:'',drawer:null});this.showToast(`${added} finds imported from Yupoo`);}
+      this.ypCancel=false;this.setState({ypBusy:'',drawer:null,ypCats:null});this.showToast(`${added} finds imported${noPrice?' · '+noPrice+' without price':''}`);}
     catch(e){this.setState({ypBusy:'',formError:e.message});}}
   async importYla(){const st=this.state;if(!st.bulkSeller)return this.setState({formError:'Pick a seller.'});this.setState({ylaBusy:true,formError:''});
     try{const res=await fetch('https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/data.json?v='+Date.now(),{cache:'no-store'});if(!res.ok)throw new Error('Could not read ylasport.site ('+res.status+')');
@@ -676,7 +732,13 @@ class Component extends DCLogic {
       locked:!st.authed&&!st.checking,unlocked:st.authed,email:st.email,onEmail:e=>this.setState({email:e.target.value,pwError:false}),loginError:st.loginErr||'Wrong password.',loginCta:st.busy?'Signing in…':'Sign in',
       loginHint:this.sbUrl()?'Use the admin email and password you created in Supabase.':'Supabase is not connected yet. Local preview password: fsfinds',pw:st.pw,onPw:e=>this.setState({pw:e.target.value,pwError:false}),pwKey:e=>{if(e.key==='Enter')this.login();},login:()=>this.login(),pwError:st.pwError,pwBorder:st.pwError?'#E5202F':'#2A2A30',
       logout:()=>{sessionStorage.removeItem('fsf_admin');if(SB)SB.auth.signOut();this.setState({authed:false});},
-      mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',isQc:sec==='qc',
+      mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',
+      ...(()=>{const L=st.live||[];const grp=(f)=>{const m={};L.forEach(x=>{const k=f(x);if(k)m[k]=(m[k]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
+        const pageName=p=>{p=p||'home';if(p==='home'||p==='')return'Home';const s=p.split('?')[0].split('/');const map={shop:'Shop',sellers:s[1]?'Seller page':'Sellers',product:'Product',tools:'Tools · '+(s[1]||'tracker'),account:'Account'};return map[s[0]]||p;};
+        const dev=grp(x=>x.dev),devTxt=dev.map(([k,n])=>n+' '+k).join(' · ');
+        return{liveCount:L.length,liveEmpty:L.length===0,liveSub:L.length?devTxt:'Updates in real time',
+          livePages:grp(x=>pageName(x.page)).slice(0,6).map(([label,n])=>({label,n})),
+          liveCountries:grp(x=>x.cc?x.cc+'|'+(x.country||x.cc):'').slice(0,6).map(([k,n])=>{const [cc,name]=k.split('|');return{label:name,n,flag:'flag:'+cc.toLowerCase()+'-4x3'};})};})(),isQc:sec==='qc',
       showPublish:st.authed&&(st.dirty||!!st.uploading),toastBottom:st.authed&&(st.dirty||!!st.uploading)?'96px':'24px',publishText:st.uploading||'Unpublished changes',publishLabel:st.publishing?'Publishing…':'Publish to GitHub',publishOpacity:st.publishing||st.uploading?'.6':'1',publish:()=>this.publish(),uploadingNow:!!st.uploading,
       loadQc:()=>this.loadQc(),qcPendingCount:st.qcPending.length,qcNoPending:st.qcPending.length===0,qcNoMissing:st.qcMissing.length===0,
       approveAll:()=>this.qcSet(st.qcPending.map(x=>x.id),true),
@@ -705,7 +767,13 @@ class Component extends DCLogic {
       drawerOpen:!!st.drawer,drawerTitle:st.drawer==='bulk'?'Bulk import finds':st.drawer==='find'?(ef.id?'Edit find':'New find'):(es.id?'Edit seller':'New seller'),editingFind:st.drawer==='find',editingBulk:st.drawer==='bulk',
       ...(()=>{if(st.drawer!=='bulk')return{bulkRows:[]};const rows=this.bulkParse(),ok=rows.filter(r=>r.pr&&!r.dup).length,bad=rows.filter(r=>!r.pr).length,dup=rows.filter(r=>r.dup).length;
         const sName=(db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'Item';
-        return{importYupoo:()=>this.importYupoo(),ypUrl:st.ypUrl||'',onYpUrl:e=>this.setState({ypUrl:e.target.value,formError:''}),ypMax:st.ypMax??40,onYpMax:e=>this.setState({ypMax:e.target.value}),
+        const yc=st.ypCats||[],ycOn=yc.filter(x=>x.on);
+        return{importYupoo:()=>this.importYupoo(),ypLoadCats:()=>this.ypLoadCats(),ypHasCats:yc.length>0,ypCatsTitle:`${yc.length} Yupoo categories`,
+          ypAllLabel:ycOn.length===yc.length?'Clear all':'Select all',ypToggleAll:()=>{const all=ycOn.length!==yc.length;this.setState({ypCats:yc.map(x=>({...x,on:all}))});},
+          ypCatRows:yc.map((x,i)=>({name:x.name,cat:x.cat,check:x.on?'✓':'',box:x.on?'#E5202F':'transparent',border:x.on?'#E5202F':'#2A2A30',
+            toggle:()=>this.setState(S=>({ypCats:S.ypCats.map((y,j)=>j===i?{...y,on:!y.on}:y)})),setCat:e=>{const v=e.target.value;this.setState(S=>({ypCats:S.ypCats.map((y,j)=>j===i?{...y,cat:v}:y)}));}})),
+          ypCatsCta:st.ypBusy||(ycOn.length?`Import ${ycOn.length} categor${ycOn.length>1?'ies':'y'}`:'Select categories'),ypCatsOpacity:ycOn.length&&!st.ypBusy?'1':'.5',
+          ypImportCats:()=>{if(ycOn.length&&!st.ypBusy)this.importYupoo(ycOn.map(x=>({url:x.url,cat:x.cat})));},ypUrl:st.ypUrl||'',onYpUrl:e=>this.setState({ypUrl:e.target.value,formError:''}),ypMax:st.ypMax??40,onYpMax:e=>this.setState({ypMax:e.target.value}),
           ypLabel:st.ypBusy||'Import albums',ypOpacity:st.ypBusy?'.7':'1',ypRunning:!!st.ypBusy,ypStop:()=>{this.ypCancel=true;},
           importYla:()=>this.importYla(),ylaLabel:st.ylaBusy?'Importing…':'Import all products from ylasport.site',bulkText:st.bulkText||'',onBulkText:e=>this.setState({bulkText:e.target.value,formError:''}),bulkSeller:st.bulkSeller,onBulkSeller:e=>this.setState({bulkSeller:e.target.value}),bulkCat:st.bulkCat,onBulkCat:e=>this.setState({bulkCat:e.target.value}),
           bulkSummary:rows.length?`${ok} ready${dup?' · '+dup+' already added':''}${bad?' · '+bad+' invalid':''}`:'Nothing pasted yet',bulkBadgeBg:ok?'rgba(61,220,132,.12)':'#1C1C20',bulkBadgeFg:ok?'#3DDC84':'#A1A0A6',
