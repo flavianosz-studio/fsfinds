@@ -1,5 +1,5 @@
 {
- "version": 1792359582457,
+ "version": 1792359617940,
  "sellers": [
   {
    "id": "northline",
@@ -320,32 +320,6 @@
    "badge": "NEW,Sale"
   },
   {
-   "id": "pmve7wqbg",
-   "cat": "tops",
-   "seller": "northline",
-   "kg": 0,
-   "qcPhotos": [],
-   "qc": 0,
-   "featured": false,
-   "buyUrl": "",
-   "createdAt": 1792351673404,
-   "srcId": "yla:1787662114494",
-   "name": "YoungLA x Batman Longsleeve",
-   "price": 12.68,
-   "priceCny": 90,
-   "platform": "Taobao",
-   "itemId": "948074709102",
-   "image": "https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/media/1787662114494/1787662114494_fbuojn.jpg",
-   "photos": [
-    "https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/media/1787662114494/1787662116832_gymftk.jpg",
-    "https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/media/1787662114494/1787662118970_oj71nv.jpg",
-    "https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/media/1787662114494/1787662120937_ccjvac.png",
-    "https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/media/1787662114494/1787662123756_6e8t2b.jpg"
-   ],
-   "desc": "There are minor flaws on the logo; otherwise, it is perfect. Feel free to ask; available in white and black, sizes S, M, L, XL.\n90y.\nModify the price before buying.\nIf you have any questions, contact me on WeChat: ylasport",
-   "badge": "SUPER SALE"
-  },
-  {
    "id": "pmve7wqbf",
    "cat": "tops",
    "seller": "northline",
@@ -380,7 +354,7 @@
    "qcPhotos": [],
    "qc": 0,
    "featured": false,
-   "buyUrl": "",
+   "buyUrl": "https://cssb.uy/2BpK",
    "createdAt": 1792351673402,
    "srcId": "yla:1790182113075",
    "name": "YoungLA x Batman Longsleeve",
