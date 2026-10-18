@@ -65,6 +65,7 @@ select option{background:#151518;color:#F5F4F2}
           <div style="display:flex;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ ranges }}" as="r"><button onClick="{{ r.select }}" style="border:none;background:{{ r.bg }};color:{{ r.fg }};padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s">{{ r.label }}</button></sc-for></div>
         </div>
       </sc-if>
+      <sc-if value="{{ showAddFind }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openBulk }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:list-plus" style="font-size:16px"></iconify-icon>Bulk import</button></sc-if>
       <sc-if value="{{ showAddFind }}" hint-placeholder-val="{{ false }}"><button onClick="{{ newFind }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)"><iconify-icon icon="ph:plus-bold"></iconify-icon>Add find</button></sc-if>
       <sc-if value="{{ showAddSeller }}" hint-placeholder-val="{{ false }}"><button onClick="{{ newSeller }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)"><iconify-icon icon="ph:plus-bold"></iconify-icon>Add seller</button></sc-if>
     </header>
@@ -339,6 +340,7 @@ select option{background:#151518;color:#F5F4F2}
         <sc-if value="{{ editingFind }}" hint-placeholder-val="{{ false }}">
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Product link (Weidian, Taobao, 1688 or agent)<input value="{{ ef.link }}" onChange="{{ efSet.link }}" placeholder="https://weidian.com/item.html?itemID=..." style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <sc-if value="{{ efParsed }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:12px;font-weight:600;background:rgba(61,220,132,.12);color:#3DDC84;padding:5px 10px;border-radius:999px">Detected {{ ef.platform }} · {{ ef.itemId }}</span></sc-if>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">CSSBuy affiliate link (optional)<input value="{{ ef.buyUrl }}" onChange="{{ efSet.buyUrl }}" placeholder="https://cssb.uy/…" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Name<input value="{{ ef.name }}" onChange="{{ efSet.name }}" placeholder="Heavyweight Boxy Tee" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ ef.seller }}" onChange="{{ efSet.seller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
@@ -354,6 +356,20 @@ select option{background:#151518;color:#F5F4F2}
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px"><sc-for list="{{ efQcThumbs }}" as="q"><div style="aspect-ratio:1;border-radius:10px;background:{{ q.bg }};background-size:cover;background-position:center;border:1px solid #2A2A30"></div></sc-for></div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo count (if you don't have the URLs yet)<input type="number" value="{{ ef.qc }}" onChange="{{ efSet.qc }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <button onClick="{{ efToggleFeatured }}" style="display:flex;align-items:center;justify-content:space-between;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:12px 14px;border-radius:12px;font-size:14px;cursor:pointer"><span>Featured on the home page</span><span style="width:38px;height:22px;border-radius:11px;background:{{ efFeatTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ efFeatKnob }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s"></span></span></button>
+        </sc-if>
+
+        <sc-if value="{{ editingBulk }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ importYla }}" style="display:flex;align-items:center;gap:12px;text-align:left;border:1px solid rgba(229,32,47,.45);background:rgba(229,32,47,.08);color:#F5F4F2;padding:14px;border-radius:14px;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:cloud-arrow-down" style="font-size:26px;color:#FF5A64;flex:none"></iconify-icon><span style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-weight:700;font-size:14px">{{ ylaLabel }}</span><span style="font-size:12px;color:#A1A0A6;line-height:1.5">Imports every product with name, price, photos and colors into the seller picked below. Run it again later to pull new drops. Buy links stay empty for your CSSBuy links.</span></span></button>
+          <span style="font-size:13px;color:#A1A0A6;line-height:1.6">Paste one product per line: the link, plus the name and price if you have them. Example:<br><span style="color:#F5F4F2;font-family:ui-monospace,monospace;font-size:12px">Compression Tee | https://item.taobao.com/item.htm?id=123… | 18.90</span></span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ bulkSeller }}" onChange="{{ onBulkSeller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none"><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Category<select value="{{ bulkCat }}" onChange="{{ onBulkCat }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none"><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Products<textarea value="{{ bulkText }}" onChange="{{ onBulkText }}" rows="12" placeholder="Paste links here, one per line" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-size:13px;resize:vertical;font-family:ui-monospace,monospace" style-focus="border-color:#E5202F"></textarea></label>
+          <span style="align-self:flex-start;font-size:12px;font-weight:600;background:{{ bulkBadgeBg }};color:{{ bulkBadgeFg }};padding:5px 10px;border-radius:999px">{{ bulkSummary }}</span>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ bulkRows }}" as="b" hint-placeholder-count="0"><div style="display:flex;gap:10px;align-items:center;background:#0B0B0D;border:1px solid {{ b.border }};border-radius:10px;padding:8px 12px;font-size:12px"><span style="flex:1;min-width:0;color:#F5F4F2;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span><span style="color:#A1A0A6;white-space:nowrap">{{ b.meta }}</span></div></sc-for>
+          </div>
         </sc-if>
 
         <sc-if value="{{ editingSeller }}" hint-placeholder-val="{{ false }}">
@@ -517,13 +533,39 @@ class Component extends DCLogic {
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
     this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();}
-  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
+  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',buyUrl:p.buyUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:'',storeUrl:'',logo:''},formError:''});}
+  bulkParse(){const st=this.state,db=st.db,seen=new Set(db.products.map(p=>p.platform+':'+p.itemId));
+    return (st.bulkText||'').split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{const url=(line.match(/https?:\/\/\S+/)||[])[0]||'';const pr=parseLink(url||line);
+      const rest=line.replace(url,' ').split(/[|\t;]/).map(s=>s.trim()).filter(Boolean);let price=0,name='';
+      rest.forEach(s=>{const n=s.replace(/[$¥,\s]/g,'').replace(/usd|cny|rmb/ig,'');if(!price&&/^\d+(\.\d+)?$/.test(n))price=s.includes('¥')||/cny|rmb/i.test(s)?+(+n/7.1).toFixed(2):+n;else if(!name&&/[a-z]/i.test(s))name=s;});
+      const dup=pr&&seen.has(pr.platform+':'+pr.id);if(pr)seen.add(pr.platform+':'+pr.id);
+      return{pr,price,name,dup,line};});}
+  async importYla(){const st=this.state;if(!st.bulkSeller)return this.setState({formError:'Pick a seller.'});this.setState({ylaBusy:true,formError:''});
+    try{const res=await fetch('https://raw.githubusercontent.com/flavianosz-studio/ylasport/main/data.json?v='+Date.now(),{cache:'no-store'});if(!res.ok)throw new Error('Could not read ylasport.site ('+res.status+')');
+      const j=await res.json();const db={...this.state.db};const list=[...db.products];let added=0,updated=0;const t=Date.now();
+      (j.albums||[]).filter(al=>al.price&&al.name).forEach((al,i)=>{
+        const media=(al.media||[]).filter(m=>m&&m.url&&m.type!=='video'&&!/\.(heic|mp4|mov|webm)$/i.test(m.url));
+        const cover=media.find(m=>m.id===al.cover_media_id)||media[0];const rest=media.filter(m=>m!==cover).map(m=>m.url);
+        const txt=(al.pay_link||'')+' '+(al.description||'');const idm=txt.match(/item\.taobao\.com\/item\.htm\?[^\s]*?[?&]?id=(\d+)/i)||txt.match(/[?&]id=(\d{8,})/);
+        const desc=(al.description||'').split('\n').map(s=>s.trim()).filter(s=>s&&!/^price:/i.test(s)&&!/https?:\/\//.test(s)&&!/cssbuy link/i.test(s)).join('\n').slice(0,400);
+        const n=al.name.toLowerCase(),cat=/zip/.test(n)?'hoodies':/pant|short|jogger/.test(n)?'pants':'tops';
+        const cny=+al.price||0,srcId='yla:'+al.id;
+        const ex=list.findIndex(p=>p.srcId===srcId);
+        const base={name:al.name.trim(),price:+(cny/7.1).toFixed(2),priceCny:cny,platform:'Taobao',itemId:idm?idm[1]:'',image:cover?cover.url:null,photos:rest,desc,badge:al.tag||''};
+        if(ex>=0){list[ex]={...list[ex],...base};updated++;}
+        else{list.unshift({id:'p'+(t+i).toString(36),cat,seller:st.bulkSeller,kg:0,qcPhotos:[],qc:0,featured:false,buyUrl:'',createdAt:t+i,srcId,...base});added++;}});
+      db.products=list;this.saveDb(db,`${added} added · ${updated} updated from ylasport.site`);this.setState({drawer:null,ylaBusy:false});}
+    catch(e){this.setState({ylaBusy:false,formError:e.message});}}
   saveDrawer(){const st=this.state,db={...st.db};
+    if(st.drawer==='bulk'){const rows=this.bulkParse().filter(r=>r.pr&&!r.dup);if(!rows.length)return this.setState({formError:'No new valid links found.'});if(!st.bulkSeller)return this.setState({formError:'Pick a seller.'});
+      const sName=(db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'Item';const t=Date.now();
+      const items=rows.map((r,i)=>({id:'p'+(t+i).toString(36),name:r.name||`${sName} ${r.pr.platform} ${r.pr.id}`,cat:st.bulkCat,seller:st.bulkSeller,price:r.price||0,kg:0,platform:r.pr.platform,itemId:r.pr.id,image:'',qcPhotos:[],qc:0,featured:false,createdAt:t+i}));
+      db.products=[...items,...db.products];this.saveDb(db,`${items.length} finds imported`);this.setState({drawer:null,bulkText:''});return;}
     if(st.drawer==='find'){const f=st.ef;const pr=parseLink(f.link);
       if(!f.name.trim())return this.setState({formError:'Add a name.'});if(!pr&&!f.itemId)return this.setState({formError:'Paste a valid Weidian, Taobao, 1688 or agent link.'});if(!f.seller)return this.setState({formError:'Create a seller first.'});
       const qcPhotos=f.qcText.split(/\s+/).map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s));
-      const item={id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
+      const item={...(db.products.find(x=>x.id===f.id)||{}),buyUrl:(f.buyUrl||'').trim(),id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
       const list=[...db.products];const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.unshift(item);db.products=list;this.saveDb(db,i>=0?'Find updated':'Find added');}
     else{const s=st.es;if(!s.name.trim())return this.setState({formError:'Add a store name.'});
       const code=(s.code||s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2)).toUpperCase();
@@ -573,7 +615,7 @@ class Component extends DCLogic {
       edit:()=>this.openSeller(s),addFind:()=>this.openFind(null,s.id),del:()=>this.setState({confirm:{title:'Delete this seller?',text:n?`${s.name} and its ${n} finds will be removed from the site.`:`${s.name} will be removed from the site.`,run:()=>this.saveDb({...db,sellers:db.sellers.filter(x=>x.id!==s.id),products:db.products.filter(p=>p.seller!==s.id)},'Seller deleted')}})};});
     // editor bindings
     const ef=st.ef||{},es=st.es||{};const efParsedObj=parseLink(ef.link);
-    const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
+    const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc','buyUrl'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
     const esSet={};['name','code','tag','badge','platform','shop','rating','ship','since','bio','logo'].forEach(k=>{esSet[k]=e=>{const v=e.target.value;this.setState(S=>({es:{...S.es,[k]:v},formError:''}));};});
     const esStore=parseStore(es.storeUrl);
     const esExtra={
@@ -621,14 +663,19 @@ class Component extends DCLogic {
         return{label,icon:CAT_ICONS[id],img,imgBg:img?`url("${img}")`:'none',hasImg:!!img,noImg:!img,count:db.products.filter(p=>p.cat===id).length,tileBg:img?'radial-gradient(circle at 50% 42%,#FFFFFF,#E4E2DF 78%)':'radial-gradient(circle at 50% 55%,rgba(229,32,47,.22),#1C1C20 68%)',
           remove:()=>setImg(''),setUrl:()=>{const u=prompt('Image URL for '+label,img||'https://');if(u&&/^https?:\/\//.test(u))setImg(u.trim());},
           upload:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;this.uploadMedia(f,'media/categories',900).then(u=>u&&setImg(u));}};}),
-      showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),newSeller:()=>this.openSeller(null),
+      showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),openBulk:()=>this.setState({drawer:'bulk',formError:'',bulkSeller:st.fSeller!=='all'?st.fSeller:(st.bulkSeller||(db.sellers[0]||{}).id),bulkCat:st.fCat!=='all'?st.fCat:(st.bulkCat||'tops')}),newSeller:()=>this.openSeller(null),
       ranges,sampleOn,toggleSample:()=>this.setState({sample:!sampleOn}),sampleTrack:sampleOn?'#E5202F':'#3A3A40',sampleKnob:sampleOn?'14px':'2px',
       sampleNote:`Showing sample data mixed with ${real.length} real events from this browser. Turn it off to see only real activity.`,
       kpis,kpiCols:`repeat(${w>=1200?5:w>=700?3:2},minmax(0,1fr))`,mainCols:w>=1100?'minmax(0,1.6fr) minmax(0,1fr)':'minmax(0,1fr)',
       chart,barGap:nb>40?'1px':'4px',chartStart:fd(from),chartEnd:'Today',countries,noCountries:countries.length===0,topFinds,devices,sources,sellerPerf,recent,noRecent:recent.length===0,
       fq:st.fq,onFq:e=>this.setState({fq:e.target.value}),fSeller:st.fSeller,onFSeller:e=>this.setState({fSeller:e.target.value}),fCat:st.fCat,onFCat:e=>this.setState({fCat:e.target.value}),
       sellerOpts:db.sellers.map(s=>({id:s.id,name:s.name})),catOpts:CATS.map(([id,label])=>({id,label})),findRows,noFinds:findRows.length===0,sellerCards,
-      drawerOpen:!!st.drawer,drawerTitle:st.drawer==='find'?(ef.id?'Edit find':'New find'):(es.id?'Edit seller':'New seller'),editingFind:st.drawer==='find',editingSeller:st.drawer==='seller',
+      drawerOpen:!!st.drawer,drawerTitle:st.drawer==='bulk'?'Bulk import finds':st.drawer==='find'?(ef.id?'Edit find':'New find'):(es.id?'Edit seller':'New seller'),editingFind:st.drawer==='find',editingBulk:st.drawer==='bulk',
+      ...(()=>{if(st.drawer!=='bulk')return{bulkRows:[]};const rows=this.bulkParse(),ok=rows.filter(r=>r.pr&&!r.dup).length,bad=rows.filter(r=>!r.pr).length,dup=rows.filter(r=>r.dup).length;
+        const sName=(db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'Item';
+        return{importYla:()=>this.importYla(),ylaLabel:st.ylaBusy?'Importing…':'Import all products from ylasport.site',bulkText:st.bulkText||'',onBulkText:e=>this.setState({bulkText:e.target.value,formError:''}),bulkSeller:st.bulkSeller,onBulkSeller:e=>this.setState({bulkSeller:e.target.value}),bulkCat:st.bulkCat,onBulkCat:e=>this.setState({bulkCat:e.target.value}),
+          bulkSummary:rows.length?`${ok} ready${dup?' · '+dup+' already added':''}${bad?' · '+bad+' invalid':''}`:'Nothing pasted yet',bulkBadgeBg:ok?'rgba(61,220,132,.12)':'#1C1C20',bulkBadgeFg:ok?'#3DDC84':'#A1A0A6',
+          bulkRows:rows.slice(0,100).map(r=>({name:r.pr?(r.name||`${sName} ${r.pr.platform} ${r.pr.id}`):r.line,meta:!r.pr?'Invalid link':r.dup?'Already added':(r.price?'$'+r.price.toFixed(2):'No price')+' · '+r.pr.platform,border:!r.pr?'rgba(229,32,47,.5)':r.dup?'#3A3A40':'#232327'}))};})(),editingSeller:st.drawer==='seller',
       closeDrawer:()=>this.setState({drawer:null}),saveDrawer:()=>this.saveDrawer(),stop:e=>e.stopPropagation(),formError:st.formError,
       ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,efUploadMain,efUploadQc,...esExtra,
       efHasImage:!!(ef.image&&/^https?:/.test(ef.image)),efImageBg:`url("${ef.image}")`,efQcCount:qcUrls.length+' added',efQcThumbs:qcUrls.slice(0,12).map(u=>({bg:`url("${u}")`})),

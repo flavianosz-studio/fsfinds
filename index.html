@@ -271,12 +271,13 @@ input[type=range]{accent-color:#E5202F}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-          <sc-for list="{{ prodThumbs }}" as="q" hint-placeholder-count="6"><div onClick="{{ q.select }}" style="cursor:pointer;aspect-ratio:1;border-radius:12px;border:2px solid {{ q.border }};background:radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%);display:flex;align-items:flex-end;justify-content:center;padding:4px;font-size:10px;color:#A1A0A6;transition:border-color .2s,transform .2s" style-hover="transform:translateY(-2px)">{{ q.label }}</div></sc-for>
+          <sc-for list="{{ prodThumbs }}" as="q" hint-placeholder-count="6"><div onClick="{{ q.select }}" style="cursor:pointer;aspect-ratio:1;border-radius:12px;border:2px solid {{ q.border }};background:{{ q.bg }};background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding:4px;font-size:10px;color:#A1A0A6;transition:border-color .2s,transform .2s" style-hover="transform:translateY(-2px)">{{ q.label }}</div></sc-for>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:18px">
         <button onClick="{{ prod.openSeller }}" style="align-self:flex-start;display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer;color:#F5F4F2;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F"><span style="width:26px;height:26px;border-radius:50%;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:10px">{{ prod.sellerCode }}</span>{{ prod.sellerName }}</button>
         <h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,3.8vw,42px);letter-spacing:-.04em;line-height:1.08">{{ prod.name }}</h1>
+        <sc-if value="{{ prod.hasDesc }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;line-height:1.65;color:#A1A0A6;white-space:pre-line;text-wrap:pretty">{{ prod.desc }}</p></sc-if>
         <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:36px;color:#E5202F;letter-spacing:-.03em">{{ prod.priceLabel }}</span><span style="font-size:14px;color:#A1A0A6">{{ prod.cny }}</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <a href="{{ prod.buyLink }}" target="_blank" onClick="{{ prod.trackBuy }}" style="flex:1;min-width:220px;text-align:center;background:#E5202F;color:#fff;padding:17px 22px;border-radius:14px;font-size:15px;font-weight:700;box-shadow:0 14px 34px -14px rgba(229,32,47,.9);transition:background .2s,transform .2s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-2px)">Buy on {{ agentName }} ↗</a>
@@ -842,18 +843,19 @@ class Component extends DCLogic {
       trackStore:()=>fsTrack('store',{seller:sObj.id}),toggleSave:()=>this.toggleSellerFav(sObj.id),saveLabel:st.favSellers.includes(sObj.id)?'♥ Saved':'♡ Save seller',saveBg:st.favSellers.includes(sObj.id)?'#E5202F':'transparent',saveBorder:st.favSellers.includes(sObj.id)?'#E5202F':'#2A2A30',facts:[{k:'Rating',v:'★ '+sObj.rating},{k:'Finds',v:String(sItems.length)},{k:'Platform',v:sObj.platform},{k:'Ships in',v:sObj.ship},{k:'Partner since',v:sObj.since}]};
     const pObj=PRODUCTS.find(p=>p.id===st.productId)||PRODUCTS[0];
     const pc=this.card(pObj),pFav=st.favs.includes(pObj.id),pSeller=SELLERS.find(s=>s.id===pObj.seller);
-    const src=sourceUrl(pObj.platform,pObj.itemId),buy=this.buyLink(pObj.platform,pObj.itemId);
-    const prod={...pc,sellerCode:pSeller.code,cny:'≈ ¥'+Math.round(pObj.price*7.1),buyLink:buy,favLabel:pFav?'♥ Saved':'♡ Save',favBg:pFav?'#E5202F':'#151518',favBorder:pFav?'#E5202F':'#2A2A30',copyLabel:st.copied==='p'?'✓ Copied':'Copy link',
+    const src=pObj.itemId?sourceUrl(pObj.platform,pObj.itemId):(pSeller.storeUrl||''),buy=pObj.buyUrl||(pObj.itemId?this.buyLink(pObj.platform,pObj.itemId):(pSeller.storeUrl||signupLink));
+    const prod={...pc,sellerCode:pSeller.code,cny:pObj.priceCny?'¥'+pObj.priceCny:'≈ ¥'+Math.round(pObj.price*7.1),desc:pObj.desc||'',hasDesc:!!pObj.desc,buyLink:buy,favLabel:pFav?'♥ Saved':'♡ Save',favBg:pFav?'#E5202F':'#151518',favBorder:pFav?'#E5202F':'#2A2A30',copyLabel:st.copied==='p'?'✓ Copied':'Copy link',
       openSeller:()=>this.go('seller',{sellerId:pObj.seller}),
       checkQc:()=>{this.go('tools',{tool:'qc',qcInput:src});setTimeout(()=>this.runQc(),0);},
       checkSize:()=>this.go('tools',{tool:'size',sz:{...st.sz,sel:null,mode:pObj.cat==='shoes'?'shoes':pObj.cat==='pants'?'bottoms':'tops',garment:pObj.cat==='outerwear'?'jacket':pObj.cat==='tops'?'tee':'hoodie'}}),
       copyLink:()=>{fsTrack('copy',{id:pObj.id,seller:pObj.seller});this.copy(buy,'p',`${agent} link copied`);},trackBuy:()=>fsTrack('buy',{id:pObj.id,seller:pObj.seller})};
-    const nThumbs=6,ti=st.thumb%nThumbs;
+    const gal=[{url:pObj.image||null,label:'Main'},...(pObj.photos||[]).filter(u=>!isVideoUrl(u)).map((u,i)=>({url:u,label:'Photo '+(i+2)})),...(pObj.qcPhotos.length?pObj.qcPhotos.map((u,i)=>({url:u,label:'QC '+(i+1)})):Array.from({length:Math.min(pObj.qc,12)},(_,i)=>({url:null,label:'QC '+(i+1)})))];
+    const nThumbs=Math.max(1,gal.length),ti=st.thumb%nThumbs;
     const prodSpecs=[{k:'Seller',v:pSeller.name},{k:'Platform',v:pObj.platform},{k:'Item ID',v:pObj.itemId},{k:'QC photos',v:String(pObj.qc)},{k:'Est. weight',v:pObj.kg.toFixed(2)+' kg'}];
-    const prodThumbs=Array.from({length:nThumbs},(_,i)=>({label:i===0?'Main':'QC '+i,border:ti===i?'#E5202F':'transparent',select:()=>this.setState({thumb:i})}));
-    const qcImg=pObj.qcPhotos[ti-1],mainImg=pObj.image;
-    const prodImgBg=ti===0&&mainImg?`url("${mainImg}")`:ti>0&&qcImg?`url("${qcImg}")`:'radial-gradient(circle at 50% 45%,#26262B,#151518 70%)';
-    const prodImgLabel=ti===0?(mainImg?'':'product photo'):(qcImg?'':'QC photo '+ti);
+    const prodThumbs=gal.map((g,i)=>({label:g.url?'':g.label,bg:g.url?`url("${g.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',border:ti===i?'#E5202F':'transparent',select:()=>this.setState({thumb:i})}));
+    const cur=gal[ti]||{};
+    const prodImgBg=cur.url?`url("${cur.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#151518 70%)';
+    const prodImgLabel=cur.url?'':(ti===0?'product photo':cur.label);
     const related=PRODUCTS.filter(p=>p.seller===pObj.seller&&p.id!==pObj.id).map(p=>this.card(p));
     const toolTabs=tools.map(t=>{const on=st.tool===t[4];return{label:mobile?t[1].split(' ')[0]:t[1],bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',select:()=>this.setState({tool:t[4]})};});
     const det=detectCarrier((st.trackInput||'').replace(/[^0-9A-Za-z]/g,'').toUpperCase());
