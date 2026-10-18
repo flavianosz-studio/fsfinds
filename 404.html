@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var m=location.pathname.match(/^(.*?\/fsfinds-site\/)/);var b=m?m[1]:'/';window.FS_BASE=b;document.write('<base href="'+b+'">');})();</script>
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/png" href="assets/fs-logo.png">
+<link rel="apple-touch-icon" href="assets/fs-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://www.17track.net/externalcall.js"></script>
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="fsf-i18n.js"></script>
+<style>
+body{margin:0;background:#0B0B0D;color:#F5F4F2;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#F5F4F2;text-decoration:none}a:hover{color:#FF3B47}
+input,select,button,textarea{font-family:inherit}*{box-sizing:border-box}
+::selection{background:#E5202F;color:#fff}
+select option{background:#151518;color:#F5F4F2}
+input[type=range]{accent-color:#E5202F}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(61,220,132,.6)}70%{box-shadow:0 0 0 7px rgba(61,220,132,0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes zoomIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{opacity:.5;transform:translateX(-50%) scale(1)}50%{opacity:.8;transform:translateX(-50%) scale(1.08)}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#0B0B0D;padding-bottom:{{ bottomPad }}">
+
+<div style="position:sticky;top:0;z-index:40;padding:{{ navPad }};transition:padding .3s">
+  <header style="max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:8px 8px 8px 14px;background:{{ navBg }};backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid {{ navBorder }};border-radius:20px;box-shadow:{{ navShadow }};transition:background .3s,box-shadow .3s,border-color .3s">
+    <div onClick="{{ goHome }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;flex:none" style-active="transform:scale(.97)">
+      <img src="assets/fs-logo.png" alt="FSFINDS" style="width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(229,32,47,.45));transition:transform .4s cubic-bezier(.3,1.6,.5,1)" style-hover="transform:rotate(-8deg) scale(1.08)">
+      <div style="display:flex;flex-direction:column;line-height:1.05"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:16px;letter-spacing:-.02em">FSFINDS</span><span style="font-size:11px;color:#A1A0A6">Spreadsheet</span></div>
+    </div>
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:2px;margin:0 auto;background:#151518;border:1px solid #232327;border-radius:14px;padding:4px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <button onClick="{{ n.go }}" style="border:none;background:{{ n.bg }};color:{{ n.fg }};padding:9px 16px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:background .25s,color .25s" style-hover="color:#F5F4F2" style-active="transform:scale(.95)">{{ n.label }}</button>
+        </sc-for>
+      </nav>
+      <div style="display:flex;gap:6px;align-items:center;flex:none">
+        <div style="display:flex;background:#151518;border:1px solid #232327;border-radius:12px;padding:3px;height:40px"><sc-for list="{{ langs }}" as="l"><button onClick="{{ l.select }}" title="{{ l.title }}" style="border:none;background:{{ l.bg }};color:{{ l.fg }};padding:0 10px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;justify-content:center"><iconify-icon icon="{{ l.icon }}" style="font-size:20px;border-radius:3px;overflow:hidden;display:block"></iconify-icon></button></sc-for></div>
+        <button onClick="{{ openSearch }}" style="display:flex;align-items:center;gap:10px;border:1px solid #232327;background:#151518;color:#A1A0A6;height:40px;padding:0 10px 0 14px;border-radius:12px;font-size:13px;cursor:pointer;transition:border-color .2s,color .2s" style-hover="border-color:#3A3A40;color:#F5F4F2">Search<span style="font-size:11px;border:1px solid #2E2E34;border-radius:6px;padding:2px 6px">⌘K</span></button>
+        <button onClick="{{ goSaved }}" style="position:relative;width:40px;height:40px;border:1px solid #232327;background:#151518;color:#F5F4F2;border-radius:12px;font-size:15px;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">♥<sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E5202F;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;animation:pop .3s ease">{{ favCount }}</span></sc-if></button>
+        <button onClick="{{ accountClick }}" style="height:40px;display:flex;align-items:center;gap:8px;border:1px solid #232327;background:#151518;color:#F5F4F2;padding:0 12px 0 6px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F" style-active="transform:scale(.96)"><span style="width:28px;height:28px;border-radius:8px;background:{{ avatarBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">{{ avatarText }}</span>{{ acctLabel }}</button>
+        <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignUp }}" style="height:40px;border:none;cursor:pointer;display:flex;align-items:center;padding:0 16px;border-radius:12px;background:#E5202F;color:#fff;font-size:13px;font-weight:700;transition:background .2s,transform .2s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-1px)">Register</button></sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button onClick="{{ toggleLang }}" style="width:42px;height:42px;border:1px solid #232327;background:#151518;color:#F5F4F2;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center"><iconify-icon icon="{{ otherFlag }}" style="font-size:22px;border-radius:3px;overflow:hidden;display:block"></iconify-icon></button>
+        <button onClick="{{ accountClick }}" style="width:42px;height:42px;border:1px solid #232327;background:{{ avatarBg }};color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">{{ avatarText }}</button>
+        <button onClick="{{ openSearch }}" style="width:42px;height:42px;border:1px solid #232327;background:#151518;color:#F5F4F2;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">Find</button>
+        <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignUp }}" style="height:42px;border:none;cursor:pointer;display:flex;align-items:center;padding:0 14px;border-radius:12px;background:#E5202F;color:#fff;font-size:13px;font-weight:700">Register</button></sc-if>
+      </div>
+    </sc-if>
+  </header>
+</div>
+
+<main style="flex:1">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="animation:rise .5s ease both">
+  <section style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(48px,8vw,96px) 20px 48px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px">
+    <div style="position:absolute;top:20px;left:50%;width:620px;max-width:95vw;height:380px;background:radial-gradient(closest-side,rgba(229,32,47,.28),transparent);filter:blur(40px);animation:glow 6s ease-in-out infinite;pointer-events:none"></div>
+    <img src="assets/fs-logo.png" alt="FSFINDS" style="position:relative;width:clamp(150px,22vw,210px);height:auto;filter:drop-shadow(0 20px 40px rgba(229,32,47,.55));transition:transform .6s cubic-bezier(.2,.8,.2,1)" style-hover="transform:scale(1.05) rotate(-3deg)">
+    <h1 style="position:relative;margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(40px,7vw,80px);line-height:1;letter-spacing:-.045em;text-wrap:balance">FSFINDS <span style="color:#E5202F">Spreadsheet</span></h1>
+    <p style="position:relative;margin:0;max-width:520px;font-size:17px;line-height:1.55;color:#A1A0A6;text-wrap:pretty">Verified finds from my partner sellers, with QC photos and full details. Order everything through {{ agentName }}.</p>
+    <span style="position:relative;display:inline-flex;align-items:center;gap:9px;background:#151518;border:1px solid #232327;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#3DDC84;animation:pulse 2s infinite"></span>{{ liveLabel }}</span>
+    <div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+      <a href="{{ signupLink }}" target="_blank" onClick="{{ trackSignup }}" style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:16px 26px;border-radius:14px;font-size:15px;font-weight:700;box-shadow:0 14px 34px -12px rgba(229,32,47,.9);transition:transform .2s,background .2s,box-shadow .3s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-2px);box-shadow:0 20px 40px -12px rgba(229,32,47,1)">Register on {{ agentName }} ↗</a>
+      <button onClick="{{ goShop }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;padding:16px 26px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:border-color .2s,transform .2s" style-hover="border-color:#F5F4F2;transform:translateY(-2px)" style-active="transform:scale(.97)">Browse finds</button>
+    </div>
+    <div onClick="{{ openSearch }}" style="position:relative;cursor:text;width:100%;max-width:560px;margin-top:14px;display:flex;align-items:center;gap:12px;background:#151518;border:1px solid #2A2A30;border-radius:16px;padding:8px 8px 8px 18px;transition:border-color .2s,box-shadow .3s" style-hover="border-color:#E5202F;box-shadow:0 0 0 4px rgba(229,32,47,.12)">
+      <span style="flex:1;text-align:left;color:#6E6D73;font-size:15px">{{ searchPlaceholder }}</span>
+      <span style="background:#E5202F;color:#fff;padding:11px 18px;border-radius:11px;font-size:14px;font-weight:700">Search</span>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:24px 20px 56px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center">
+      <h2 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">Shop by category</h2>
+      <p style="margin:0;color:#A1A0A6;font-size:15px">Browse the verified collections</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
+      <sc-for list="{{ catTiles }}" as="c" hint-placeholder-count="6">
+        <div onClick="{{ c.go }}" style="cursor:pointer;background:#151518;border:1px solid #232327;border-radius:18px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,background .3s" style-hover="transform:translateY(-5px);border-color:#E5202F;background:#18181C" style-active="transform:scale(.97)">
+          <div style="position:relative;width:100%;aspect-ratio:1.25;border-radius:12px;background:{{ c.tileBg }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ false }}"><div style="width:80%;height:80%;background-color:#1C1C20;background-image:{{ c.imgBg }};background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 12px 14px rgba(0,0,0,.28));transition:transform .45s cubic-bezier(.2,.8,.2,1)" style-hover="transform:scale(1.08) rotate(-3deg)"></div></sc-if>
+            <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ true }}"><iconify-icon icon="{{ c.icon }}" style="font-size:52px;color:#FF4A55;filter:drop-shadow(0 8px 18px rgba(229,32,47,.55))"></iconify-icon></sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">{{ c.label }}</span><span style="font-size:12px;color:#A1A0A6;white-space:nowrap">{{ c.countLabel }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:{{ statCols }};gap:12px;margin-top:10px">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+        <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.04em;color:{{ s.color }}">{{ s.value }}</span><span style="font-size:13px;color:#A1A0A6">{{ s.label }}</span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">Partner sellers</h2><p style="margin:0;color:#A1A0A6;font-size:15px">Stores I've ordered from and work with directly</p></div>
+      <button onClick="{{ goSellers }}" style="border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">All sellers →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+      <sc-for list="{{ sellers }}" as="s" hint-placeholder-count="6">
+        <div onClick="{{ s.open }}" onMouseEnter="{{ s.enter }}" onMouseLeave="{{ s.leave }}" style="cursor:pointer;background:#151518;border:1px solid {{ s.border }};border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;transform:{{ s.lift }};transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="position:relative;overflow:hidden;width:48px;height:48px;flex:none;border-radius:14px;background:{{ s.logoBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:15px;transition:background .3s">{{ s.code }}<sc-if value="{{ s.hasLogo }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-color:#fff;background-image:{{ s.logoBgImg }};background-size:cover;background-position:center"></div></sc-if></div>
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1"><span style="align-self:flex-start;font-size:10px;font-weight:700;background:rgba(229,32,47,.12);color:#FF5A64;padding:3px 8px;border-radius:999px">{{ s.badge }}</span><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:13px;color:#A1A0A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.tag }}</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <sc-for list="{{ s.thumbs }}" as="th" hint-placeholder-count="3"><div style="aspect-ratio:1;border-radius:10px;background-color:#1C1C20;background-image:{{ th.shade }},{{ th.bg }};background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding:6px;font-size:11px;font-weight:600;color:#C9C8CC">{{ th.price }}</div></sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#A1A0A6"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.meta }}</span><span style="color:#F5F4F2;transform:{{ s.arrow }};transition:transform .3s">→</span></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">Latest finds</h2><p style="margin:0;color:#A1A0A6;font-size:15px">Fresh from the partner sellers</p></div>
+      <div style="display:flex;gap:4px;overflow-x:auto;background:#151518;border:1px solid #232327;border-radius:14px;padding:4px;max-width:100%">
+        <sc-for list="{{ homeTabs }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.select }}" style="flex:none;border:none;background:{{ c.bg }};color:{{ c.fg }};padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .25s,color .25s" style-active="transform:scale(.94)">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      <sc-for list="{{ homeItems }}" as="p" hint-placeholder-count="8">
+        <div style="animation:rise .45s ease both"><dc-import name="ProductCardV4" item="{{ p }}" hint-size="100%,340px"></dc-import></div>
+      </sc-for>
+    </div>
+    <button onClick="{{ homeViewAll }}" style="align-self:center;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:14px 24px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px)">View all finds →</button>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center"><h2 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">Free haul tools</h2><p style="margin:0;color:#A1A0A6;font-size:15px">Check, size and track before and after you buy</p></div>
+    <div style="display:grid;grid-template-columns:{{ toolCols }};gap:12px">
+      <sc-for list="{{ toolCards }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.go }}" onMouseEnter="{{ t.enter }}" onMouseLeave="{{ t.leave }}" style="cursor:pointer;position:relative;overflow:hidden;background:#151518;border:1px solid {{ t.border }};border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px;min-height:200px;transition:border-color .3s,transform .35s cubic-bezier(.2,.8,.2,1);transform:{{ t.lift }}">
+          <div style="position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(229,32,47,.35),transparent);opacity:{{ t.glow }};transition:opacity .4s"></div>
+          <div style="position:relative;width:44px;height:44px;border-radius:13px;background:{{ t.iconBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;transition:background .3s">{{ t.num }}</div>
+          <span style="position:relative;font-family:'Sora',sans-serif;font-weight:700;font-size:18px;margin-top:auto">{{ t.name }}</span>
+          <span style="position:relative;font-size:14px;line-height:1.5;color:#A1A0A6">{{ t.desc }}</span>
+          <span style="position:relative;font-size:13px;font-weight:700;color:#FF5A64">{{ t.cta }} →</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center"><h2 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">How it works</h2><p style="margin:0;color:#A1A0A6;font-size:15px">Your first haul in three steps</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+        <div style="background:#151518;border:1px solid #232327;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:36px;height:36px;border-radius:50%;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:15px">{{ st.n }}</span><div style="flex:1;height:2px;background:#232327;border-radius:1px;overflow:hidden"><div style="height:100%;background:#E5202F;transform:{{ st.fill }};transform-origin:left;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)"></div></div></div>
+          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px">{{ st.title }}</span>
+          <span style="font-size:14px;line-height:1.6;color:#A1A0A6;text-wrap:pretty">{{ st.body }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:800px;margin:0 auto;padding:40px 20px 80px;display:flex;flex-direction:column;gap:10px">
+    <h2 style="margin:0 0 12px;text-align:center;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.035em">Questions</h2>
+    <sc-for list="{{ faq }}" as="f" hint-placeholder-count="4">
+      <div style="background:#151518;border:1px solid {{ f.border }};border-radius:16px;overflow:hidden;transition:border-color .3s">
+        <button onClick="{{ f.toggle }}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;border:none;background:none;padding:18px 20px;font-size:15px;font-weight:700;text-align:left;cursor:pointer;color:#F5F4F2"><span>{{ f.q }}</span><span style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ f.iconBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;transform:{{ f.rot }};transition:transform .35s cubic-bezier(.2,.8,.2,1),background .25s">+</span></button>
+        <div style="display:grid;grid-template-rows:{{ f.rows }};transition:grid-template-rows .4s cubic-bezier(.2,.8,.2,1)"><div style="overflow:hidden"><p style="margin:0;padding:0 20px 18px;font-size:14px;line-height:1.65;color:#A1A0A6">{{ f.a }}</p></div></div>
+      </div>
+    </sc-for>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ isShop }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width:1180px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:18px;animation:rise .4s ease both">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(30px,4.5vw,46px);letter-spacing:-.04em">{{ shopTitle }}</h1><span style="font-size:14px;color:#A1A0A6">{{ shopCount }} results</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search by name or seller" style="flex:1;min-width:220px;background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:14px 16px;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s" style-focus="border-color:#E5202F;box-shadow:0 0 0 4px rgba(229,32,47,.12)">
+      <select value="{{ sort }}" onChange="{{ onSort }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:14px;font-size:14px;cursor:pointer"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="qc">Most QC photos</option></select>
+      <select value="{{ sellerFilter }}" onChange="{{ onSellerFilter }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:14px;font-size:14px;cursor:pointer"><option value="all">All sellers</option><sc-for list="{{ sellers }}" as="s"><option value="{{ s.id }}">{{ s.name }}</option></sc-for></select>
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
+      <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="7">
+        <button onClick="{{ c.select }}" style="flex:none;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s" style-active="transform:scale(.94)">{{ c.label }} <span style="opacity:.65">{{ c.count }}</span></button>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      <sc-for list="{{ shopItems }}" as="p" hint-placeholder-count="8"><div style="animation:rise .4s ease both"><dc-import name="ProductCardV4" item="{{ p }}" hint-size="100%,340px"></dc-import></div></sc-for>
+    </div>
+    <sc-if value="{{ shopEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:#151518;border:1px dashed #2A2A30;border-radius:20px;padding:48px;text-align:center;color:#A1A0A6;display:flex;flex-direction:column;gap:14px;align-items:center"><span>Nothing matches.</span><button onClick="{{ clearFilters }}" style="border:none;background:#E5202F;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">Clear filters</button></div></sc-if>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isSellers }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width:1180px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:24px;animation:rise .4s ease both">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center"><h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(30px,4.5vw,46px);letter-spacing:-.04em">Partner sellers</h1><p style="margin:0;color:#A1A0A6;font-size:15px;max-width:480px;line-height:1.6">Every store here is one I've ordered from and work with directly.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+      <sc-for list="{{ sellers }}" as="s" hint-placeholder-count="6">
+        <div onClick="{{ s.open }}" onMouseEnter="{{ s.enter }}" onMouseLeave="{{ s.leave }}" style="position:relative;cursor:pointer;background:#151518;border:1px solid {{ s.border }};border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:16px;transform:{{ s.lift }};transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s">
+          <button onClick="{{ s.toggleSave }}" title="Save seller" style="position:absolute;top:14px;right:14px;z-index:1;width:36px;height:36px;border-radius:50%;border:1px solid #2A2A30;background:{{ s.saveBg }};color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.3,1.7,.5,1),background .2s" style-hover="transform:scale(1.1)" style-active="transform:scale(.75)">{{ s.saveIcon }}</button>
+          <div style="display:flex;gap:14px;align-items:center;padding-right:42px">
+            <div style="position:relative;overflow:hidden;width:56px;height:56px;flex:none;border-radius:16px;background:{{ s.logoBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:18px;transition:background .3s">{{ s.code }}<sc-if value="{{ s.hasLogo }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-color:#fff;background-image:{{ s.logoBgImg }};background-size:cover;background-position:center"></div></sc-if></div>
+            <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px">{{ s.name }}</span><span style="font-size:13px;color:#A1A0A6">{{ s.tag }}</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <sc-for list="{{ s.thumbs }}" as="th" hint-placeholder-count="3"><div style="aspect-ratio:1;border-radius:12px;background-color:#1C1C20;background-image:{{ th.shade }},{{ th.bg }};background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding:6px;font-size:11px;font-weight:600;color:#C9C8CC">{{ th.price }}</div></sc-for>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600">
+            <span style="background:#1C1C20;padding:6px 10px;border-radius:999px">★ {{ s.rating }}</span><span style="background:#1C1C20;padding:6px 10px;border-radius:999px">{{ s.count }} finds</span><span style="background:#1C1C20;padding:6px 10px;border-radius:999px">{{ s.platform }}</span><span style="background:#1C1C20;padding:6px 10px;border-radius:999px">Ships {{ s.ship }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isSeller }}" hint-placeholder-val="{{ false }}">
+  <div style="animation:rise .4s ease both">
+  <section style="max-width:1180px;margin:0 auto;padding:24px 20px 0">
+    <div style="position:relative;overflow:hidden;background:#151518;border:1px solid #232327;border-radius:26px;padding:clamp(20px,4vw,36px);display:flex;flex-direction:column;gap:20px">
+      <div style="position:absolute;right:-120px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(closest-side,rgba(229,32,47,.3),transparent);pointer-events:none"></div>
+      <button onClick="{{ goSellers }}" style="position:relative;align-self:flex-start;border:1px solid #2A2A30;background:#0B0B0D;color:#A1A0A6;padding:8px 12px;border-radius:10px;font-size:13px;cursor:pointer;transition:color .2s" style-hover="color:#F5F4F2">← All sellers</button>
+      <div style="position:relative;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <div style="position:relative;overflow:hidden;width:80px;height:80px;flex:none;border-radius:22px;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:28px;box-shadow:0 16px 40px -12px rgba(229,32,47,.8)">{{ seller.code }}<sc-if value="{{ seller.hasLogo }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-color:#fff;background-image:{{ seller.logoBgImg }};background-size:cover;background-position:center"></div></sc-if></div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px"><h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,4.5vw,44px);letter-spacing:-.04em;line-height:1.05">{{ seller.name }}</h1><span style="font-size:15px;color:#A1A0A6">{{ seller.tag }}</span></div>
+        <button onClick="{{ seller.toggleSave }}" style="border:1px solid {{ seller.saveBorder }};background:{{ seller.saveBg }};color:#F5F4F2;padding:15px 18px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s" style-active="transform:scale(.94)">{{ seller.saveLabel }}</button>
+        <a href="{{ seller.storeLink }}" target="_blank" onClick="{{ seller.trackStore }}" style="background:#E5202F;color:#fff;padding:15px 22px;border-radius:14px;font-size:14px;font-weight:700;transition:background .2s,transform .2s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-2px)">Open store on {{ agentName }} ↗</a>
+      </div>
+      <p style="position:relative;margin:0;font-size:15px;line-height:1.6;color:#C9C8CC;max-width:640px">{{ seller.bio }}</p>
+      <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">
+        <sc-for list="{{ seller.facts }}" as="fc" hint-placeholder-count="5"><div style="background:#0B0B0D;border:1px solid #232327;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:#A1A0A6">{{ fc.k }}</span><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">{{ fc.v }}</span></div></sc-for>
+      </div>
+    </div>
+  </section>
+  <section style="max-width:1180px;margin:0 auto;padding:24px 20px 80px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      <sc-for list="{{ sellerItems }}" as="p" hint-placeholder-count="4"><dc-import name="ProductCardV4" item="{{ p }}" hint-size="100%,340px"></dc-import></sc-for>
+    </div>
+  </section>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
+  <div style="animation:rise .4s ease both">
+  <section style="max-width:1180px;margin:0 auto;padding:20px 20px 48px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;gap:8px;font-size:13px;color:#A1A0A6;flex-wrap:wrap;align-items:center"><button onClick="{{ goShop }}" style="border:none;background:none;color:#A1A0A6;padding:0;cursor:pointer;font-size:inherit" style-hover="color:#F5F4F2">Shop</button><span>›</span><button onClick="{{ prod.openSeller }}" style="border:none;background:none;color:#A1A0A6;padding:0;cursor:pointer;font-size:inherit" style-hover="color:#F5F4F2">{{ prod.sellerName }}</button><span>›</span><span style="color:#F5F4F2">{{ prod.name }}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="aspect-ratio:1;position:relative;overflow:hidden;border-radius:24px;border:1px solid #232327;background:#151518">
+          <div style="position:absolute;inset:0;background-color:#1C1C20;background-image:{{ prodImgBg }};background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6E6D73">{{ prodImgLabel }}</span></div>
+          <div style="position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;font-weight:600;background:rgba(11,11,13,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:7px 11px;border-radius:999px">{{ thumbCounter }}</span>
+            <div style="display:flex;gap:6px"><button onClick="{{ thumbPrev }}" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(11,11,13,.75);color:#F5F4F2;cursor:pointer;transition:background .2s" style-hover="background:#E5202F" style-active="transform:scale(.9)">‹</button><button onClick="{{ thumbNext }}" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(11,11,13,.75);color:#F5F4F2;cursor:pointer;transition:background .2s" style-hover="background:#E5202F" style-active="transform:scale(.9)">›</button></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 30px) / 6);gap:6px;overflow-x:auto;scrollbar-width:thin;padding-bottom:4px">
+          <sc-for list="{{ prodThumbs }}" as="q" hint-placeholder-count="6"><div onClick="{{ q.select }}" style="cursor:pointer;aspect-ratio:1;border-radius:12px;border:2px solid {{ q.border }};background-color:#1C1C20;background-image:{{ q.bg }};background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding:4px;font-size:10px;color:#A1A0A6;transition:border-color .2s,transform .2s" style-hover="transform:translateY(-2px)">{{ q.label }}</div></sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <button onClick="{{ prod.openSeller }}" style="align-self:flex-start;display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer;color:#F5F4F2;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F"><span style="width:26px;height:26px;border-radius:50%;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:10px">{{ prod.sellerCode }}</span>{{ prod.sellerName }}</button>
+        <h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,3.8vw,42px);letter-spacing:-.04em;line-height:1.08">{{ prod.name }}</h1>
+        <sc-if value="{{ prod.hasDesc }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;line-height:1.65;color:#A1A0A6;white-space:pre-line;text-wrap:pretty">{{ prod.desc }}</p></sc-if>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:36px;color:#E5202F;letter-spacing:-.03em">{{ prod.priceLabel }}</span><span style="font-size:14px;color:#A1A0A6">{{ prod.cny }}</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="{{ prod.buyLink }}" target="_blank" onClick="{{ prod.trackBuy }}" style="flex:1;min-width:220px;text-align:center;background:#E5202F;color:#fff;padding:17px 22px;border-radius:14px;font-size:15px;font-weight:700;box-shadow:0 14px 34px -14px rgba(229,32,47,.9);transition:background .2s,transform .2s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-2px)">Buy on {{ agentName }} ↗</a>
+          <button onClick="{{ prod.toggleFav }}" style="border:1px solid {{ prod.favBorder }};background:{{ prod.favBg }};color:#F5F4F2;padding:17px 20px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s" style-active="transform:scale(.92)">{{ prod.favLabel }}</button>
+        </div>
+        <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:4px 16px">
+          <sc-for list="{{ prodSpecs }}" as="sp" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #1E1E22;font-size:14px"><span style="color:#A1A0A6">{{ sp.k }}</span><span style="font-weight:600;text-align:right">{{ sp.v }}</span></div></sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button onClick="{{ prod.checkQc }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:14px 8px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px)">QC photos</button>
+          <button onClick="{{ prod.checkSize }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:14px 8px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px)">Find my size</button>
+          <button onClick="{{ prod.copyLink }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:14px 8px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px)">{{ prod.copyLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section style="max-width:1180px;margin:0 auto;padding:0 20px 80px;display:flex;flex-direction:column;gap:18px">
+    <h3 style="margin:0;font-family:'Sora',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.03em">More from {{ prod.sellerName }}</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      <sc-for list="{{ related }}" as="p" hint-placeholder-count="3"><dc-import name="ProductCardV4" item="{{ p }}" hint-size="100%,340px"></dc-import></sc-for>
+    </div>
+  </section>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isTools }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width:980px;margin:0 auto;padding:32px 20px 88px;display:flex;flex-direction:column;gap:22px;animation:rise .4s ease both">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center"><h1 style="margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(30px,4.5vw,46px);letter-spacing:-.04em">Haul tools</h1><p style="margin:0;color:#A1A0A6;font-size:15px">Free, no account needed</p></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#151518;border:1px solid #232327;border-radius:16px;padding:4px">
+      <sc-for list="{{ toolTabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.select }}" style="border:none;background:{{ t.bg }};color:{{ t.fg }};padding:12px 6px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .3s,color .3s" style-active="transform:scale(.96)">{{ t.label }}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ tTrack }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#151518;border:1px solid #232327;border-radius:22px;padding:clamp(16px,3vw,26px);display:flex;flex-direction:column;gap:16px;animation:rise .3s ease both">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px">Package tracker</span><span style="color:#A1A0A6;font-size:14px;line-height:1.55">Live tracking for 3,000+ carriers. The carrier is detected from your number.</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input value="{{ trackInput }}" onChange="{{ onTrackInput }}" onKeyDown="{{ trackKey }}" placeholder="Tracking number" style="flex:1;min-width:220px;background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:15px 16px;font-size:15px;outline:none;text-transform:uppercase;letter-spacing:.04em;transition:border-color .2s,box-shadow .2s" style-focus="border-color:#E5202F;box-shadow:0 0 0 4px rgba(229,32,47,.12)">
+          <button onClick="{{ runTrack }}" style="border:none;background:#E5202F;color:#fff;padding:15px 24px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)">Track</button>
+        </div>
+        <sc-if value="{{ trackDetected }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;display:flex;gap:8px;align-items:center;font-size:12px;font-weight:600;background:rgba(229,32,47,.12);color:#FF5A64;padding:6px 11px;border-radius:999px;animation:pop .25s ease">Detected · {{ trackCarrier }}</span></sc-if>
+        <sc-if value="{{ trackError }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:#FF5A64;font-size:14px">Enter a tracking number with at least 8 letters or digits.</p></sc-if>
+        <sc-if value="{{ trackOk }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;animation:rise .3s ease both">
+            <a href="{{ track17 }}" target="_blank" style="border:1px solid #2A2A30;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F">Open on 17TRACK ↗</a>
+            <sc-if value="{{ trackOfficial }}" hint-placeholder-val="{{ false }}"><a href="{{ trackOfficial }}" target="_blank" style="border:1px solid #2A2A30;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F">{{ trackCarrier }} site ↗</a></sc-if>
+            <button onClick="{{ copyTrack }}" style="border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">{{ copyTrackLabel }}</button>
+          </div>
+        </sc-if>
+        <div id="YQContainer" style="min-height:{{ trackFrameH }};border-radius:14px;overflow:hidden;background:#fff;transition:min-height .4s"></div>
+        <sc-if value="{{ hasRecentTracks }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:12px;color:#A1A0A6;margin-right:4px">Recent</span>
+            <sc-for list="{{ recentTracks }}" as="r"><button onClick="{{ r.go }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:7px 11px;border-radius:999px;font-size:12px;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">{{ r.num }}</button></sc-for>
+            <button onClick="{{ clearTracks }}" style="border:none;background:none;color:#A1A0A6;font-size:12px;cursor:pointer;text-decoration:underline">Clear</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tQc }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#151518;border:1px solid #232327;border-radius:22px;padding:clamp(16px,3vw,26px);display:flex;flex-direction:column;gap:16px;animation:rise .3s ease both">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px">QC photo finder</span><span style="color:#A1A0A6;font-size:14px;line-height:1.55">Paste a Weidian, Taobao, 1688 or agent link. Catalog items show our QC photos, and every link gets quick community QC searches.</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input value="{{ qcInput }}" onChange="{{ onQcInput }}" onKeyDown="{{ qcKey }}" placeholder="Paste an item link" style="flex:1;min-width:220px;background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:15px 16px;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s" style-focus="border-color:#E5202F;box-shadow:0 0 0 4px rgba(229,32,47,.12)">
+          <button onClick="{{ runQc }}" style="border:none;background:#E5202F;color:#fff;padding:15px 24px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)">Find QC</button>
+        </div>
+        <sc-if value="{{ qcError }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:#FF5A64;font-size:14px">Couldn't read an item ID from that link.</p></sc-if>
+        <sc-if value="{{ qcLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="height:100px;border-radius:18px;background:linear-gradient(90deg,#151518 25%,#202024 50%,#151518 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite"></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px">
+              <sc-for list="{{ skeletons }}" as="sk"><div style="aspect-ratio:1;border-radius:12px;background:linear-gradient(90deg,#151518 25%,#202024 50%,#151518 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite"></div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ qcOk }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px;animation:rise .3s ease both">
+            <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:#0B0B0D;border:1px solid #232327;border-radius:18px;padding:12px">
+              <div style="width:76px;height:76px;flex:none;border-radius:14px;background-color:#1C1C20;background-image:{{ qc.thumbBg }};background-size:cover;background-position:center"></div>
+              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:5px">
+                <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;line-height:1.3">{{ qc.title }}</span>
+                <span style="font-size:12px;color:#A1A0A6">{{ qc.platform }} · {{ qc.id }}</span>
+                <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:#E5202F">{{ qc.priceLabel }}</span>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <a href="{{ qc.buyLink }}" target="_blank" onClick="{{ qc.trackBuy }}" style="background:#E5202F;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;transition:background .2s" style-hover="background:#FF3B47;color:#fff">Buy on {{ agentName }} ↗</a>
+                <sc-if value="{{ qc.match }}" hint-placeholder-val="{{ false }}"><button onClick="{{ qc.openProduct }}" style="border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">Product page</button></sc-if>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600">
+              <span style="display:flex;align-items:center;gap:6px;background:{{ qc.statusBg }};color:{{ qc.statusFg }};padding:6px 11px;border-radius:999px"><span style="width:6px;height:6px;border-radius:50%;background:{{ qc.statusFg }}"></span>{{ qc.statusLabel }}</span>
+              <span style="background:#1C1C20;padding:6px 11px;border-radius:999px">{{ qc.photoCountLabel }}</span>
+              <span style="background:#1C1C20;padding:6px 11px;border-radius:999px">{{ qc.setCountLabel }}</span>
+            </div>
+            <sc-for list="{{ qc.sets }}" as="set">
+              <div style="display:flex;flex-direction:column;gap:8px;animation:rise .35s ease both">
+                <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px"><span style="font-weight:700">{{ set.label }}</span><span style="color:#A1A0A6">{{ set.meta }}</span></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px">
+                  <sc-for list="{{ set.photos }}" as="ph"><div onClick="{{ ph.open }}" style="cursor:zoom-in;aspect-ratio:1;border-radius:12px;border:1px solid #232327;background-color:#1C1C20;background-image:{{ ph.bg }};background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding:6px;font-size:10px;color:#A1A0A6;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s" style-hover="transform:scale(1.04);border-color:#E5202F">{{ ph.label }}</div></sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ qc.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-weight:700">No QC photos for this item yet</span><span style="font-size:13px;color:#A1A0A6">Order it on {{ agentName }} to get your own warehouse photos, or check the community links below.</span></div>
+            </sc-if>
+            <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <iconify-icon icon="ph:camera-plus" style="font-size:24px;color:#FF5A64;flex:none"></iconify-icon>
+              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:14px">Got QC for this item?</span><span style="font-size:12px;color:#A1A0A6;line-height:1.5">Share your warehouse photos or videos. They go live after review.</span></div>
+              <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><label style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47"><iconify-icon icon="ph:upload-simple"></iconify-icon>{{ qcUpLabel }}<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ qcUpload }}" style="display:none"></label></sc-if>
+              <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F">Sign in to share</button></sc-if>
+            </div>
+            <span style="font-size:12px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Search elsewhere</span>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
+              <sc-for list="{{ qc.sources }}" as="src" hint-placeholder-count="4"><a href="{{ src.url }}" target="_blank" style="background:#0B0B0D;border:1px solid #2A2A30;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px);color:#F5F4F2"><span style="font-weight:700;font-size:14px">{{ src.name }} ↗</span><span style="font-size:12px;color:#A1A0A6">{{ src.desc }}</span></a></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tSize }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#151518;border:1px solid #232327;border-radius:22px;padding:clamp(16px,3vw,26px);display:flex;flex-direction:column;gap:20px;animation:rise .3s ease both">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px">Size estimator</span><span style="color:#A1A0A6;font-size:14px">{{ szIntro }}</span></div>
+          <div style="display:flex;background:#0B0B0D;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ unitTabs }}" as="u"><button onClick="{{ u.select }}" style="border:none;background:{{ u.bg }};color:{{ u.fg }};padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s">{{ u.label }}</button></sc-for></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0B0B0D;border:1px solid #2A2A30;border-radius:14px;padding:4px">
+          <sc-for list="{{ szModeTabs }}" as="m"><button onClick="{{ m.select }}" style="border:none;background:{{ m.bg }};color:{{ m.fg }};padding:11px 6px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:background .25s,color .25s" style-active="transform:scale(.96)">{{ m.label }}</button></sc-for>
+        </div>
+        <sc-if value="{{ szBody }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px">
+            <label style="display:flex;flex-direction:column;gap:10px"><span style="display:flex;justify-content:space-between;font-size:13px;color:#A1A0A6">Height <span style="font-weight:700;color:#F5F4F2">{{ sz.heightLabel }}</span></span><input type="range" min="145" max="210" value="{{ sz.height }}" onChange="{{ onHeight }}" style="cursor:pointer"></label>
+            <label style="display:flex;flex-direction:column;gap:10px"><span style="display:flex;justify-content:space-between;font-size:13px;color:#A1A0A6">Weight <span style="font-weight:700;color:#F5F4F2">{{ sz.weightLabel }}</span></span><input type="range" min="40" max="140" value="{{ sz.weight }}" onChange="{{ onWeight }}" style="cursor:pointer"></label>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#0B0B0D;border:1px solid #232327;border-radius:14px;padding:10px 12px">
+            <span style="font-size:13px;color:#A1A0A6;flex:1;min-width:180px">{{ measureLabel }}</span>
+            <input type="number" value="{{ measureVal }}" onChange="{{ onMeasure }}" placeholder="{{ measurePlaceholder }}" style="width:120px;background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:10px;padding:10px 12px;font-size:14px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F">
+            <span style="font-size:12px;color:#6E6D73">{{ measureUnit }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ szShoes }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;align-items:end">
+            <label style="display:flex;flex-direction:column;gap:10px"><span style="display:flex;justify-content:space-between;font-size:13px;color:#A1A0A6">Foot length (heel to longest toe) <span style="font-weight:700;color:#F5F4F2">{{ footLabel }}</span></span><input type="range" min="22" max="31" step="0.1" value="{{ footVal }}" onChange="{{ onFoot }}" style="cursor:pointer"></label>
+            <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#A1A0A6">Or start from your usual size<select value="{{ usualEu }}" onChange="{{ onUsualEu }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:11px;font-size:14px;cursor:pointer"><option value="">Pick EU size…</option><sc-for list="{{ euOptions }}" as="o"><option value="{{ o.v }}">{{ o.label }}</option></sc-for></select></label>
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          <sc-for list="{{ szGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#A1A0A6">{{ g.label }}</span><div style="display:flex;background:#0B0B0D;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ g.opts }}" as="o"><button onClick="{{ o.select }}" style="flex:1;border:none;background:{{ o.bg }};color:{{ o.fg }};padding:10px 4px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .25s,color .25s">{{ o.label }}</button></sc-for></div></div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px">
+          <div style="position:relative;overflow:hidden;background:#E5202F;color:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:6px">
+            <div style="position:absolute;right:-50px;bottom:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12)"></div>
+            <span style="position:relative;font-size:13px;font-weight:600;opacity:.9">{{ res.kicker }}</span>
+            <span style="position:relative;font-family:'Sora',sans-serif;font-weight:800;font-size:96px;line-height:.9;letter-spacing:-.05em">{{ res.rec }}</span>
+            <span style="position:relative;font-size:14px;line-height:1.5">{{ res.line1 }}</span>
+            <span style="position:relative;font-size:13px;opacity:.85;line-height:1.5">{{ res.line2 }}</span>
+            <div style="position:relative;margin-top:10px;display:flex;flex-direction:column;gap:6px">
+              <div style="position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.25)"><span style="position:absolute;top:50%;left:{{ res.meter }};width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #0B0B0D;transform:translate(-50%,-50%);transition:left .45s cubic-bezier(.2,.8,.2,1)"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;opacity:.85"><span>{{ res.meterL }}</span><span>{{ res.meterM }}</span><span>{{ res.meterR }}</span></div>
+            </div>
+          </div>
+          <div style="background:#0B0B0D;border:1px solid #232327;border-radius:18px;padding:6px 16px;overflow-x:auto">
+            <div style="display:grid;grid-template-columns:.7fr 1fr 1fr 1.5fr;gap:8px;padding:10px 0;font-size:11px;color:#A1A0A6;font-weight:600;border-bottom:1px solid #232327;min-width:300px"><span>{{ res.h1 }}</span><span>{{ res.h2 }}</span><span>{{ res.h3 }}</span><span>{{ res.h4 }}</span></div>
+            <sc-for list="{{ res.rows }}" as="r" hint-placeholder-count="5">
+              <div onClick="{{ r.pick }}" style="cursor:pointer;display:grid;grid-template-columns:.7fr 1fr 1fr 1.5fr;gap:8px;padding:11px 6px;margin:0 -6px;border-radius:8px;border-bottom:1px solid #1A1A1E;font-size:14px;color:{{ r.fg }};font-weight:{{ r.weight }};background:{{ r.bg }};transition:color .3s,background .3s;min-width:300px" style-hover="background:#151518"><span>{{ r.c1 }}</span><span>{{ r.c2 }}</span><span>{{ r.c3 }}</span><span style="display:flex;align-items:center;gap:8px"><span style="height:5px;border-radius:3px;width:{{ r.barW }};background:{{ r.barC }};transition:width .4s cubic-bezier(.2,.8,.2,1)"></span>{{ r.c4 }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ szTops }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid #232327;padding-top:16px">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:14px">Use the seller's chart</span><span style="font-size:12px;color:#A1A0A6">Copy the chest (胸围) numbers from the listing for an exact fit.</span></div><button onClick="{{ resetChart }}" style="border:1px solid #2A2A30;background:none;color:#A1A0A6;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:color .2s,border-color .2s" style-hover="color:#F5F4F2;border-color:#E5202F">Reset to typical</button></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">
+              <sc-for list="{{ chartInputs }}" as="ci"><label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:#A1A0A6">{{ ci.size }}<input type="number" value="{{ ci.value }}" onChange="{{ ci.onChange }}" style="background:#0B0B0D;border:1px solid {{ ci.border }};color:#F5F4F2;border-radius:10px;padding:10px;font-size:14px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F"></label></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tConvert }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#151518;border:1px solid #232327;border-radius:22px;padding:clamp(16px,3vw,26px);display:flex;flex-direction:column;gap:16px;animation:rise .3s ease both">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px">Link converter</span><span style="color:#A1A0A6;font-size:14px;line-height:1.55">Paste marketplace or agent links, one per line, and get clean {{ agentName }} links with other referral codes removed.</span></div>
+        <textarea value="{{ convInput }}" onChange="{{ onConvInput }}" placeholder="https://item.taobao.com/item.htm?id=...&#10;https://www.cssbuy.com/item-micro-7400000000.html" rows="4" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:14px;padding:15px 16px;font-size:13px;outline:none;resize:vertical;transition:border-color .2s,box-shadow .2s" style-focus="border-color:#E5202F;box-shadow:0 0 0 4px rgba(229,32,47,.12)"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ runConvert }}" style="border:none;background:#E5202F;color:#fff;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.96)">Convert</button>
+          <sc-if value="{{ convMulti }}" hint-placeholder-val="{{ false }}"><button onClick="{{ copyAllConv }}" style="border:1px solid #2A2A30;background:none;color:#F5F4F2;padding:14px 18px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer">{{ copyAllLabel }}</button></sc-if>
+        </div>
+        <sc-if value="{{ convError }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:#FF5A64;font-size:14px">Couldn't read an item ID from {{ convBad }}.</p></sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ convRows }}" as="cr">
+            <div style="background:#0B0B0D;border:1px solid #232327;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;animation:rise .3s ease both">
+              <span style="font-size:11px;font-weight:700;background:rgba(229,32,47,.14);color:#FF5A64;padding:4px 9px;border-radius:999px">{{ cr.platform }}</span>
+              <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:200px"><span style="font-size:13px;word-break:break-all">{{ cr.url }}</span><span style="font-size:11px;color:#6E6D73;word-break:break-all">{{ cr.clean }}</span></div>
+              <button onClick="{{ cr.copy }}" style="border:1px solid {{ cr.copyBorder }};background:{{ cr.copyBg }};color:#F5F4F2;padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;min-width:84px;transition:all .2s" style-active="transform:scale(.92)">{{ cr.copyLabel }}</button>
+              <a href="{{ cr.url }}" target="_blank" style="border:1px solid #2A2A30;padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700">Open ↗</a>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width:1180px;margin:0 auto;padding:28px 20px 80px;display:flex;flex-direction:column;gap:18px;animation:rise .4s ease both">
+    <div style="position:relative;overflow:hidden;background:#151518;border:1px solid #232327;border-radius:24px;padding:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <div style="position:absolute;right:-100px;top:-140px;width:340px;height:340px;border-radius:50%;background:radial-gradient(closest-side,rgba(229,32,47,.28),transparent);pointer-events:none"></div>
+      <span style="position:relative;width:64px;height:64px;flex:none;border-radius:18px;background:{{ avatarBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:24px;box-shadow:0 12px 30px -12px rgba(229,32,47,.8)">{{ avatarText }}</span>
+      <div style="position:relative;flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(20px,3vw,28px);letter-spacing:-.03em;word-break:break-all">{{ acctTitle }}</span><span style="font-size:13px;color:#A1A0A6">{{ acctSub }}</span></div>
+      <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><div style="position:relative;display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:13px 18px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F">Sign in</button><button onClick="{{ openSignUp }}" style="border:none;background:#E5202F;color:#fff;padding:13px 18px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47">Create account</button></div></sc-if>
+      <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><button onClick="{{ signOut }}" style="position:relative;display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#0B0B0D;color:#A1A0A6;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:color .2s" style-hover="color:#FF5A64"><iconify-icon icon="ph:sign-out"></iconify-icon>Sign out</button></sc-if>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+      <sc-for list="{{ acctStats }}" as="s" hint-placeholder-count="3"><div style="background:#151518;border:1px solid #232327;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:24px">{{ s.v }}</span><span style="font-size:12px;color:#A1A0A6">{{ s.l }}</span></div></sc-for>
+    </div>
+    <div style="display:flex;gap:4px;background:#151518;border:1px solid #232327;border-radius:14px;padding:4px;align-self:flex-start;max-width:100%">
+      <sc-for list="{{ acctTabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.select }}" style="border:none;background:{{ t.bg }};color:{{ t.fg }};padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .25s,color .25s;display:flex;align-items:center;gap:8px"><iconify-icon icon="{{ t.icon }}"></iconify-icon>{{ t.label }}</button></sc-for>
+    </div>
+    <sc-if value="{{ tabFinds }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ savedEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#151518;border:1px dashed #2A2A30;border-radius:22px;padding:48px 24px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center"><span style="width:60px;height:60px;border-radius:50%;background:rgba(229,32,47,.12);color:#E5202F;display:flex;align-items:center;justify-content:center;font-size:26px">♡</span><span style="font-size:15px;color:#A1A0A6;max-width:340px;line-height:1.55">Tap the heart on any find to save it here.</span><button onClick="{{ goShop }}" style="border:none;background:#E5202F;color:#fff;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer">Browse finds</button></div>
+      </sc-if>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+        <sc-for list="{{ savedItems }}" as="p" hint-placeholder-count="0"><div style="animation:rise .35s ease both"><dc-import name="ProductCardV4" item="{{ p }}" hint-size="100%,340px"></dc-import></div></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ tabSellers }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ savedSellersEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#151518;border:1px dashed #2A2A30;border-radius:22px;padding:48px 24px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center"><span style="width:60px;height:60px;border-radius:50%;background:rgba(229,32,47,.12);color:#E5202F;display:flex;align-items:center;justify-content:center"><iconify-icon icon="ph:storefront" style="font-size:28px"></iconify-icon></span><span style="font-size:15px;color:#A1A0A6;max-width:340px;line-height:1.55">Save your favourite stores from the Sellers page.</span><button onClick="{{ goSellers }}" style="border:none;background:#E5202F;color:#fff;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer">See sellers</button></div>
+      </sc-if>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+        <sc-for list="{{ savedSellers }}" as="s" hint-placeholder-count="0">
+          <div onClick="{{ s.open }}" style="cursor:pointer;background:#151518;border:1px solid #232327;border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;animation:rise .35s ease both;transition:border-color .25s,transform .3s cubic-bezier(.2,.8,.2,1)" style-hover="border-color:rgba(229,32,47,.6);transform:translateY(-3px)">
+            <span style="position:relative;overflow:hidden;width:50px;height:50px;flex:none;border-radius:14px;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:15px">{{ s.code }}<sc-if value="{{ s.hasLogo }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-color:#fff;background-image:{{ s.logoBgImg }};background-size:cover;background-position:center"></div></sc-if></span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">{{ s.name }}</span><span style="font-size:12px;color:#A1A0A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.meta }}</span></div>
+            <button onClick="{{ s.remove }}" title="Remove" style="width:36px;height:36px;flex:none;border-radius:50%;border:none;background:#E5202F;color:#fff;font-size:15px;cursor:pointer;transition:transform .2s" style-active="transform:scale(.8)">♥</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </section>
+</sc-if>
+
+</main>
+
+<footer style="border-top:1px solid #1A1A1E;background:#0B0B0D">
+  <div style="max-width:1180px;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px"><img src="assets/fs-logo.png" alt="FSFINDS" style="width:40px;height:40px;object-fit:contain"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:16px">FSFINDS</span></div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap"><sc-for list="{{ nav }}" as="n"><button onClick="{{ n.go }}" style="border:none;background:none;color:#A1A0A6;padding:0;font-size:14px;cursor:pointer;transition:color .2s" style-hover="color:#F5F4F2">{{ n.label }}</button></sc-for><button onClick="{{ openPopup }}" style="border:none;background:none;color:#A1A0A6;padding:0;font-size:14px;cursor:pointer" style-hover="color:#F5F4F2">Coupons</button><a href="FSFinds Admin.dc.html" style="color:#6E6D73;font-size:14px">Admin</a></div>
+    </div>
+    <p style="margin:0;font-size:12px;line-height:1.7;color:#6E6D73;max-width:900px">© 2026 FSFINDS, curated by Flaviano Santana. FSFINDS is an informational platform and does not sell products. Purchases, payments, shipping and fulfillment are handled by {{ agentName }} and the third-party sellers. {{ agentName }} may pay a commission when you sign up or buy through these links; your price stays the same.</p>
+  </div>
+</footer>
+
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+  <nav style="position:fixed;left:10px;right:10px;bottom:10px;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;background:rgba(21,21,24,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid #2A2A30;border-radius:20px;box-shadow:0 16px 40px -12px rgba(0,0,0,.9)">
+    <sc-for list="{{ tabbar }}" as="t" hint-placeholder-count="5">
+      <button onClick="{{ t.go }}" style="border:none;background:{{ t.bg }};color:{{ t.fg }};padding:9px 2px 8px;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .25s,color .25s" style-active="transform:scale(.92)">
+        <span style="width:6px;height:6px;border-radius:50%;background:{{ t.dot }};transition:background .25s"></span><span style="font-size:11px;font-weight:700">{{ t.label }}</span>
+      </button>
+    </sc-for>
+  </nav>
+</sc-if>
+
+<div style="position:fixed;left:50%;bottom:{{ toastBottom }};z-index:60;transform:translateX(-50%) translateY({{ toastY }});opacity:{{ toastOpacity }};transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .25s;pointer-events:none;background:#F5F4F2;color:#0B0B0D;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 14px 30px -10px rgba(0,0,0,.8);white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#E5202F"></span>{{ toast }}</div>
+
+<sc-if value="{{ lbOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ lbClose }}" style="position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px">
+    <div style="position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;color:#F5F4F2;font-size:13px;font-weight:600"><span>{{ lb.setLabel }} · {{ lb.counter }}</span><button onClick="{{ lbClose }}" style="width:40px;height:40px;border-radius:50%;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;font-size:18px;cursor:pointer;transition:transform .3s" style-hover="transform:rotate(90deg)">×</button></div>
+    <div onClick="{{ stop }}" style="width:min(86vw,80vh);aspect-ratio:1;border-radius:18px;background-color:#1C1C20;background-image:{{ lb.bg }};background-size:contain;background-repeat:no-repeat;background-position:center;display:flex;align-items:center;justify-content:center;color:#6E6D73;font-size:13px;animation:zoomIn .25s ease both">{{ lb.label }}</div>
+    <div onClick="{{ stop }}" style="display:flex;gap:8px">
+      <button onClick="{{ lbPrev }}" style="width:48px;height:48px;border-radius:50%;border:none;background:#151518;color:#F5F4F2;font-size:20px;cursor:pointer;transition:background .2s" style-hover="background:#E5202F" style-active="transform:scale(.9)">‹</button>
+      <button onClick="{{ lbNext }}" style="width:48px;height:48px;border-radius:50%;border:none;background:#151518;color:#F5F4F2;font-size:20px;cursor:pointer;transition:background .2s" style-hover="background:#E5202F" style-active="transform:scale(.9)">›</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSearch }}" style="position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;justify-content:center;align-items:flex-start;padding:min(12vh,100px) 14px 14px">
+    <div onClick="{{ stop }}" style="width:100%;max-width:600px;background:#151518;border:1px solid #2A2A30;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px -20px #000;animation:pop .25s ease both">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 8px 8px 18px;border-bottom:1px solid #232327">
+        <input ref="{{ searchRef }}" value="{{ searchQ }}" onChange="{{ onSearchQ }}" onKeyDown="{{ searchKey }}" placeholder="Search finds and sellers…" style="flex:1;min-width:0;border:none;background:transparent;color:#F5F4F2;padding:14px 0;font-size:16px;outline:none">
+        <button onClick="{{ closeSearch }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#A1A0A6;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer">Esc</button>
+      </div>
+      <div style="max-height:60vh;overflow-y:auto;padding:8px">
+        <sc-if value="{{ hasSellerHits }}" hint-placeholder-val="{{ false }}">
+          <span style="display:block;padding:8px 10px 4px;font-size:11px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em">Sellers</span>
+          <sc-for list="{{ sellerHits }}" as="s"><button onClick="{{ s.open }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:none;color:#F5F4F2;padding:10px;border-radius:12px;cursor:pointer;text-align:left;transition:background .15s" style-hover="background:#1E1E22"><span style="position:relative;overflow:hidden;width:34px;height:34px;border-radius:10px;background:#E5202F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:11px">{{ s.code }}<sc-if value="{{ s.hasLogo }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-color:#fff;background-image:{{ s.logoBgImg }};background-size:cover;background-position:center"></div></sc-if></span><span style="flex:1;font-weight:600;font-size:14px">{{ s.name }}</span><span style="font-size:12px;color:#A1A0A6">{{ s.count }} finds</span></button></sc-for>
+        </sc-if>
+        <span style="display:block;padding:8px 10px 4px;font-size:11px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em">{{ searchHeading }}</span>
+        <sc-for list="{{ searchHits }}" as="p"><button onClick="{{ p.open }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:none;color:#F5F4F2;padding:10px;border-radius:12px;cursor:pointer;text-align:left;transition:background .15s" style-hover="background:#1E1E22"><span style="width:44px;height:44px;border-radius:10px;background-color:#1C1C20;background-image:{{ p.thumbBg }};background-size:cover;background-position:center;flex:none"></span><span style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">{{ p.name }}</span><span style="font-size:12px;color:#A1A0A6">{{ p.sellerName }}</span></span><span style="display:flex;flex-direction:column;align-items:flex-end;flex:none"><span style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px">{{ p.priceLabel }}</span><span style="font-size:10px;color:#6E6D73">{{ p.cnyLabel }}</span></span></button></sc-for>
+        <sc-if value="{{ noSearchHits }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:24px 10px;text-align:center;color:#A1A0A6;font-size:14px">No matches for “{{ searchQ }}”.</p></sc-if>
+      </div>
+      <sc-if value="{{ hasSearchQ }}" hint-placeholder-val="{{ false }}"><button onClick="{{ searchAll }}" style="width:100%;border:none;border-top:1px solid #232327;background:#0B0B0D;color:#FF5A64;padding:14px;font-size:13px;font-weight:700;cursor:pointer">See all results in Shop →</button></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ authOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeAuth }}" style="position:fixed;inset:0;z-index:58;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px">
+    <div onClick="{{ stop }}" style="position:relative;width:100%;max-width:400px;background:#151518;border:1px solid #2A2A30;border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px -20px #000;animation:pop .25s ease both">
+      <button onClick="{{ closeAuth }}" style="position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;font-size:17px;cursor:pointer;transition:transform .3s" style-hover="transform:rotate(90deg)">×</button>
+      <img src="assets/fs-logo.png" alt="" style="width:64px;height:64px;object-fit:contain;align-self:center;filter:drop-shadow(0 10px 22px rgba(229,32,47,.55))">
+      <div style="display:flex;flex-direction:column;gap:4px;text-align:center"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em">{{ authTitle }}</span><span style="font-size:13px;color:#A1A0A6">{{ authSub }}</span></div>
+      <sc-if value="{{ authTabsOn }}" hint-placeholder-val="{{ true }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#0B0B0D;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ authTabs }}" as="t"><button onClick="{{ t.select }}" style="border:none;background:{{ t.bg }};color:{{ t.fg }};padding:9px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s">{{ t.label }}</button></sc-for></div></sc-if>
+      <input type="email" value="{{ aEmail }}" onChange="{{ onAEmail }}" onKeyDown="{{ authKey }}" placeholder="Email" autocomplete="email" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:14px;font-size:15px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F">
+      <sc-if value="{{ authShowPw }}" hint-placeholder-val="{{ true }}"><input type="password" value="{{ aPw }}" onChange="{{ onAPw }}" onKeyDown="{{ authKey }}" placeholder="Password (min. 6 characters)" autocomplete="current-password" style="width:100%;background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:14px;font-size:15px;outline:none;transition:border-color .2s" style-focus="border-color:#E5202F"></sc-if>
+      <sc-if value="{{ aErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#FF5A64;line-height:1.5">{{ aErr }}</span></sc-if>
+      <sc-if value="{{ aMsg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#3DDC84;line-height:1.5">{{ aMsg }}</span></sc-if>
+      <button onClick="{{ doAuth }}" style="border:none;background:#E5202F;color:#fff;padding:15px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;opacity:{{ aBusyOpacity }};transition:background .2s" style-hover="background:#FF3B47" style-active="transform:scale(.98)">{{ authCta }}</button>
+      <button onClick="{{ authAlt }}" style="border:none;background:none;color:#A1A0A6;font-size:13px;cursor:pointer" style-hover="color:#F5F4F2">{{ authAltLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showPopup }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closePopup }}" style="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rise .25s ease both">
+    <div onClick="{{ stop }}" style="position:relative;overflow:hidden;background:#151518;border:1px solid #2A2A30;border-radius:26px;max-width:440px;width:100%;padding:28px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;box-shadow:0 30px 80px -20px #000">
+      <div style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:360px;height:280px;background:radial-gradient(closest-side,rgba(229,32,47,.35),transparent);pointer-events:none"></div>
+      <button onClick="{{ closePopup }}" style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;font-size:18px;cursor:pointer;transition:transform .3s" style-hover="transform:rotate(90deg)">×</button>
+      <img src="assets/fs-logo.png" alt="" style="position:relative;width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 14px 30px rgba(229,32,47,.6))">
+      <h2 style="position:relative;margin:0;font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.04em;line-height:1.1">Coupons for your first haul</h2>
+      <p style="position:relative;margin:0;font-size:14px;line-height:1.6;color:#A1A0A6">Create your free {{ agentName }} account through FSFINDS and the new-account coupons are added for when your parcel ships.</p>
+      <div style="position:relative;width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#0B0B0D;border:1px dashed #E5202F;border-radius:14px;padding:12px 12px 12px 16px">
+        <div style="display:flex;flex-direction:column;gap:2px;text-align:left"><span style="font-size:11px;color:#A1A0A6">Your code</span><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:.04em">{{ couponCode }}</span></div>
+        <button onClick="{{ copyCoupon }}" style="border:none;background:{{ couponBtnBg }};color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;min-width:84px;transition:background .2s" style-active="transform:scale(.92)">{{ couponCopyLabel }}</button>
+      </div>
+      <a href="{{ signupLink }}" target="_blank" onClick="{{ trackSignup }}" style="position:relative;width:100%;text-align:center;background:#E5202F;color:#fff;padding:16px;border-radius:14px;font-size:15px;font-weight:700;transition:background .2s,transform .2s" style-hover="background:#FF3B47;color:#fff;transform:translateY(-2px)">Claim my coupons ↗</a>
+      <button onClick="{{ closePopup }}" style="position:relative;border:none;background:none;font-size:13px;color:#A1A0A6;cursor:pointer">I already have {{ agentName }}</button>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;agentName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;CSSBuy&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Affiliate&quot;},&quot;promoCode&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;FSFINDS&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Affiliate&quot;},&quot;signupLink&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://cssb.uy/24Fo&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Affiliate&quot;},&quot;supabaseUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Supabase&quot;},&quot;supabaseAnonKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Supabase&quot;},&quot;qcApiUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;QC data&quot;},&quot;showCouponPopup&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+const CAT_ICONS={shoes:'ph:sneaker-move-duotone',tops:'ph:t-shirt-duotone',hoodies:'ph:hoodie-duotone',pants:'ph:pants-duotone',outerwear:'ph:coat-hanger-duotone',accessories:'ph:handbag-duotone'};
+const CATS=[['all','All'],['shoes','Shoes'],['tops','Tops'],['hoodies','Hoodies'],['pants','Pants'],['outerwear','Outerwear'],['accessories','Accessories']];
+// Edit sellers/products here. Optional per product: image:'https://…', qcPhotos:['https://…',…]
+const DEFAULT_SELLERS=[
+{id:'northline',name:'Northline Studio',badge:'Top rated',tag:'Heavyweight basics & fleece',platform:'Weidian',rating:'4.9',ship:'1–2 days',since:'2023',code:'NS',shop:'1652189023',bio:'Cotton tees and fleece in 400–500 gsm. Consistent sizing and quick restocks on core colours.'},
+{id:'kiln',name:'Kiln Footwear',badge:'Shoes',tag:'Runners, court & skate shoes',platform:'Weidian',rating:'4.8',ship:'2–4 days',since:'2022',code:'KF',shop:'1713002291',bio:'Footwear specialist. Sends extra measurement photos on request and ships with double boxes.'},
+{id:'mono',name:'Mono Atelier',badge:'Denim',tag:'Tailored pants & denim',platform:'Taobao',rating:'4.7',ship:'2–3 days',since:'2023',code:'MA',shop:'58210457',bio:'Denim and trousers with full size charts per item, including thigh and leg opening.'},
+{id:'harbor',name:'Harbor Outdoor',badge:'Outerwear',tag:'Shells, puffers & vests',platform:'1688',rating:'4.8',ship:'3–5 days',since:'2022',code:'HO',shop:'b2b-22189',bio:'Outerwear with taped seams and real down fill options. Heavier parcels, so plan your shipping.'},
+{id:'quiet',name:'Quiet Goods',badge:'Accessories',tag:'Bags, belts, eyewear',platform:'Weidian',rating:'4.6',ship:'1–3 days',since:'2024',code:'QG',shop:'1880423117',bio:'Small accessories that add almost nothing to your parcel weight.'},
+{id:'loop',name:'Loop Knit Co.',badge:'New',tag:'Knitwear & sets',platform:'Taobao',rating:'4.9',ship:'2–3 days',since:'2024',code:'LK',shop:'71933025',bio:'Wool and cotton knits made in small batches. Colours are photographed in daylight.'}];
+const RAW=[
+['Heavyweight Boxy Tee','tops','northline',14.9,24,0.32],['Garment-Dyed Pocket Tee','tops','northline',12.5,18,0.28],['Brushed Fleece Hoodie','hoodies','northline',29.7,36,0.85],['Zip Fleece Hoodie','hoodies','northline',33.0,22,0.9],
+['Retro Runner 95','shoes','kiln',42.1,60,1.4],['Court Low Classic','shoes','kiln',36.4,48,1.3],['Suede Skate Mid','shoes','kiln',39.6,31,1.35],['Trail Runner GTX','shoes','kiln',52.8,27,1.5],
+['Wide-Leg Washed Denim','pants','mono',32.8,29,0.9],['Pleated Wool Trouser','pants','mono',38.5,14,0.7],['Straight Selvedge Jean','pants','mono',34.7,20,0.95],['Technical Cargo Pant','pants','mono',26.4,17,0.6],
+['Hooded Down Puffer','outerwear','harbor',84.2,40,1.6],['3L Shell Jacket','outerwear','harbor',69.4,33,0.8],['Quilted Liner Vest','outerwear','harbor',38.0,12,0.5],['Waxed Field Jacket','outerwear','harbor',70.2,19,1.3],
+['Leather Belt 35mm','accessories','quiet',11.1,26,0.3],['Rimless Sunglasses','accessories','quiet',13.5,15,0.15],['Nylon Crossbody Bag','accessories','quiet',18.9,21,0.35],['Ribbed Wool Beanie','accessories','quiet',8.6,9,0.12],
+['Cable Knit Crewneck','hoodies','loop',31.9,23,0.7],['Knit Polo Shirt','tops','loop',24.8,16,0.35],['Lounge Knit Set','tops','loop',41.3,28,0.9],['Mohair Cardigan','outerwear','loop',44.6,11,0.6]];
+const DEFAULT_PRODUCTS=RAW.map((r,i)=>{const s=DEFAULT_SELLERS.find(x=>x.id===r[2]);const id=s.platform==='Taobao'?String(700000000000+i*913577):s.platform==='1688'?String(650000000000+i*771233):String(7400000000+i*3917311);return{id:'p'+i,name:r[0],cat:r[1],seller:r[2],price:r[3],qc:r[4],kg:r[5],platform:s.platform,itemId:id,image:null,qcPhotos:[]};});
+const FSDB=(()=>{try{return JSON.parse(localStorage.getItem('fsf_db')||'null');}catch(e){return null;}})();
+if(!FSDB){try{localStorage.setItem('fsf_db',JSON.stringify({sellers:DEFAULT_SELLERS,products:DEFAULT_PRODUCTS,settings:{}}));}catch(e){}}
+let SELLERS=(FSDB&&FSDB.sellers&&FSDB.sellers.length)?FSDB.sellers:DEFAULT_SELLERS;
+let PRODUCTS=((FSDB&&FSDB.products)?FSDB.products:DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>!p.seller||SELLERS.some(s=>s.id===p.seller));
+let SETTINGS=(FSDB&&FSDB.settings)||{};
+const SB_URL='https://zpylgnbppleajzngxgxb.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweWxnbmJwcGxlYWp6bmd4Z3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjk0MTQsImV4cCI6MjEwNzkwNTQxNH0.EI68QGfbglxM7Upa_YxRfk9k43024kthSX7q1TqfUwo';
+const TOOL_SLUG={track:'tracker',qc:'qc',size:'size',convert:'converter'},SLUG_TOOL={tracker:'track',qc:'qc',size:'size',converter:'convert'};
+function fsBase(){return window.FS_BASE||'/';}
+function fsParse(){let p=location.pathname,b=fsBase();if(p.startsWith(b))p=p.slice(b.length);p=p.replace(/^\/+|\/+$/g,'').replace(/^index\.html$/,'');const seg=p.split('/').filter(Boolean).map(decodeURIComponent);const q=new URLSearchParams(location.search);
+  if(!seg.length)return{page:'home'};
+  switch(seg[0]){case 'shop':return{page:'shop',cat:q.get('cat')||'all',query:q.get('q')||''};
+    case 'sellers':return seg[1]?{page:'seller',sellerId:seg[1]}:{page:'sellers'};
+    case 'product':return seg[1]?{page:'product',productId:seg[1]}:{page:'shop'};
+    case 'tools':return{page:'tools',tool:SLUG_TOOL[seg[1]]||'track'};
+    case 'account':case 'saved':return{page:'saved'};
+    default:return{page:'home'};}}
+function fsPath(s){const e=encodeURIComponent;switch(s.page){case 'shop':{const q=new URLSearchParams();if(s.cat&&s.cat!=='all')q.set('cat',s.cat);if(s.query)q.set('q',s.query);const qs=q.toString();return 'shop'+(qs?'?'+qs:'');}
+  case 'sellers':return 'sellers';case 'seller':return 'sellers/'+e(s.sellerId);case 'product':return 'product/'+e(s.productId);
+  case 'tools':return 'tools/'+(TOOL_SLUG[s.tool]||'tracker');case 'saved':return 'account';default:return '';}}
+let SB=null;function sbClient(url,key){if(!SB&&url&&key&&window.supabase){try{SB=window.supabase.createClient(url,key);}catch(e){}}return SB;}
+function fsFileB64(file,max){return new Promise((res,rej)=>{const isImg=/^image\/(jpeg|png|webp)$/.test(file.type);const lim=/^video\//.test(file.type)?15e6:10e6;
+  const rd=new FileReader();rd.onerror=()=>rej(new Error('Could not read file'));
+  if(!isImg){if(file.size>lim)return rej(new Error(file.name+' is too large (max '+(lim/1e6)+' MB)'));rd.onload=()=>res({name:file.name,b64:String(rd.result).split(',')[1]});rd.readAsDataURL(file);return;}
+  rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,(max||1600)/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+    const u=cv.toDataURL('image/webp',.86),webp=u.startsWith('data:image/webp');res({name:file.name.replace(/\.[^.]+$/,'')+(webp?'.webp':'.png'),b64:(webp?u:cv.toDataURL('image/png')).split(',')[1]});};im.onerror=()=>rej(new Error('Invalid image'));im.src=rd.result;};rd.readAsDataURL(file);});}
+async function fsInvoke(c,body){const {data,error}=await c.functions.invoke('github-media',{body});if(error){let m=error.message;try{const j=await error.context.json();m=j.error||m;}catch(e){}throw new Error(m);}if(data&&data.error)throw new Error(data.error);return data;}
+const isVideoUrl=u=>/\.(mp4|webm|mov)(\?|$)/i.test(u||'');
+function fsGeo(){try{return JSON.parse(localStorage.getItem('fsf_geo')||'null');}catch(e){return null;}}
+function fsTrack(type,data){try{const ev=JSON.parse(localStorage.getItem('fsf_events')||'[]');const g=fsGeo()||{};let vid=localStorage.getItem('fsf_vid');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('fsf_vid',vid);}
+let ref='direct';try{if(document.referrer)ref=new URL(document.referrer).hostname.replace(/^www\./,'');}catch(e){}
+ev.push({t:Date.now(),type,vid,cc:g.cc||'',country:g.country||'',dev:innerWidth<760?'mobile':innerWidth<1100?'tablet':'desktop',ref,...(data||{})});
+if(ev.length>8000)ev.splice(0,ev.length-8000);localStorage.setItem('fsf_events',JSON.stringify(ev));
+const {t,type:_t,vid:_v,cc,country,dev,ref:_r,...rest}=ev[ev.length-1];(window.__fsq=window.__fsq||[]).push({type,vid,cc:cc||null,country:country||null,dev,ref,data:rest});fsFlushSoon();}catch(e){}}
+function fsFlushSoon(){clearTimeout(window.__fsqt);window.__fsqt=setTimeout(fsFlush,1500);}
+function fsFlush(){const q=window.__fsq||[];if(!q.length)return;if(!SB){fsFlushSoon();return;}const batch=q.splice(0,q.length);SB.from('events').insert(batch).then(({error})=>{if(error&&!/relation|does not exist/i.test(error.message||''))window.__fsq.unshift(...batch.slice(0,200));},()=>{});}
+addEventListener('pagehide',()=>{try{fsFlush();}catch(e){}});
+let QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);
+function fsApply(F){SELLERS=(F.sellers&&F.sellers.length)?F.sellers:DEFAULT_SELLERS;PRODUCTS=(F.products||DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>!p.seller||SELLERS.some(s=>s.id===p.seller));SETTINGS=F.settings||{};QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);if(typeof fsNorm==='function')fsNorm();}
+const INDEP={id:'',name:'FSFINDS pick',code:'FS',tag:'',platform:'',hasLogo:false,logoBgImg:'none',storeUrl:''};
+function sellerOf(id){return (id&&SELLERS.find(x=>x.id===id))||INDEP;}
+function fsNorm(){SELLERS=SELLERS.map(s=>({...s,hasLogo:!!s.logo,logoBgImg:s.logo?`url("${s.logo}")`:'none'}));}
+try{const pub=JSON.parse(localStorage.getItem('fsf_pub')||'null');if(pub&&pub.products)fsApply(pub);}catch(e){}fsNorm();
+const CHARTS={tee:{S:[98,68],M:[103,70],L:[108,72],XL:[113,74],XXL:[118,76]},hoodie:{S:[104,67],M:[110,69],L:[116,71],XL:[122,73],XXL:[128,75]},jacket:{S:[108,68],M:[114,70],L:[120,72],XL:[126,74],XXL:[132,76]}};
+const TARGET={fitted:4,regular:9,oversized:16};
+const PANTS={S:[74,98],M:[78,100],L:[82,102],XL:[86,104],XXL:[90,106]};
+const SHOES=[[230,36.5,4.5,6,3.5],[235,37.5,5,6.5,4],[240,38.5,6,7.5,5.5],[245,39,6.5,8,6],[250,40,7,8.5,6],[255,40.5,7.5,9,6.5],[260,41,8,9.5,7],[265,42,8.5,10,7.5],[270,42.5,9,10.5,8],[275,43,9.5,11,8.5],[280,44,10,11.5,9],[285,44.5,10.5,12,9.5],[290,45,11,12.5,10],[295,45.5,11.5,13,10.5],[300,46,12,13.5,11],[305,47,12.5,14,11.5],[310,47.5,13,14.5,12]];
+const CARRIERS=[
+ [/^1Z[0-9A-Z]{16}$/,'UPS',n=>`https://www.ups.com/track?tracknum=${n}`],
+ [/^(94|93|92|95)\d{18,20}$/,'USPS',n=>`https://tools.usps.com/go/TrackConfirmAction?tLabels=${n}`],
+ [/^[A-Z]{2}\d{9}BR$/,'Correios (Brazil)',n=>`https://rastreamento.correios.com.br/app/index.php?objeto=${n}`],
+ [/^[A-Z]{2}\d{9}CN$/,'China Post / EMS',null],
+ [/^[A-Z]{2}\d{9}GB$/,'Royal Mail',n=>`https://www.royalmail.com/track-your-item#/tracking-results/${n}`],
+ [/^[A-Z]{2}\d{9}CA$/,'Canada Post',n=>`https://www.canadapost-postescanada.ca/track-reperage/en#/details/${n}`],
+ [/^[A-Z]{2}\d{9}[A-Z]{2}$/,'International postal',null],
+ [/^YT\d{16}$/,'YunExpress',n=>`https://www.yuntrack.com/parcelTracking?id=${n}`],
+ [/^(LP|CNG|CNAQV)\w+$/,'Cainiao',n=>`https://global.cainiao.com/newDetail.htm?mailNoList=${n}`],
+ [/^\d{10}$/,'DHL Express',n=>`https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=${n}`],
+ [/^(\d{12}|\d{15})$/,'FedEx',n=>`https://www.fedex.com/fedextrack/?trknbr=${n}`]];
+function detectCarrier(n){for(const [re,name,fn] of CARRIERS)if(re.test(n))return{name,url:fn?fn(n):null};return n.length>=8?{name:'Auto-detect on 17TRACK',url:null}:null;}
+function parseLink(u){
+  u=(u||'').trim();if(!u)return null;let m;
+  const inner=u.match(/[?&](?:url|link|productLink)=([^&]+)/i);
+  if(inner){try{const d=decodeURIComponent(inner[1]);const r=parseLink(d.includes('%')?decodeURIComponent(d):d);if(r)return r;}catch(e){}}
+  if((m=u.match(/weidian\.com.*?(?:itemID|itemId|item_id)=(\d+)/i))||(m=u.match(/item-micro-(\d+)/i))||(m=u.match(/[?&]id=(\d+).*?(?:shop_type|platform|source)=weidian/i))||(m=u.match(/(?:shop_type|platform|source)=weidian.*?[?&]id=(\d+)/i)))return{platform:'Weidian',id:m[1]};
+  if((m=u.match(/1688\.com\/offer\/(\d+)/i))||(m=u.match(/item-1688-(\d+)/i))||(m=u.match(/[?&]id=(\d+).*?(?:shop_type|platform|source)=(?:1688|ali_1688)/i)))return{platform:'1688',id:m[1]};
+  if((m=u.match(/(?:taobao|tmall)\.com.*?[?&]id=(\d+)/i))||(m=u.match(/item-(\d{9,})\.html/i))||(m=u.match(/[?&]id=(\d+).*?(?:shop_type|platform|source)=taobao/i)))return{platform:'Taobao',id:m[1]};
+  if((m=u.match(/[?&](?:id|itemID)=(\d{8,})/i)))return{platform:'Weidian',id:m[1]};
+  return null;
+}
+const sourceUrl=(p,id)=>p==='Taobao'?`https://item.taobao.com/item.htm?id=${id}`:p==='1688'?`https://detail.1688.com/offer/${id}.html`:`https://weidian.com/item.html?itemID=${id}`;
+
+class Component extends DCLogic {
+  state={page:'home',prev:'home',cat:'all',homeCat:'all',query:'',sort:'featured',sellerFilter:'all',sellerId:null,productId:null,tool:'track',...fsParse(),
+    favs:JSON.parse(localStorage.getItem('fsf_favs')||'[]'),favSellers:JSON.parse(localStorage.getItem('fsf_fav_sellers')||'[]'),user:null,auth:null,lang:(()=>{try{return localStorage.getItem('fsf_lang')||'en';}catch(e){return 'en';}})(),aEmail:'',aPw:'',aBusy:false,aMsg:'',aErr:'',acctTab:'finds',recent:JSON.parse(localStorage.getItem('fsf_tracks')||'[]'),
+    faqOpen:0,popup:false,w:window.innerWidth,scrolled:false,hoverSeller:null,hoverTool:null,toast:'',toastOn:false,count:0,thumb:0,stepsOn:false,
+    searchOpen:false,searchQ:'',
+    trackInput:'',trackNum:'',trackError:false,qcInput:'',qc:{},convInput:'',conv:[],convBad:'',copied:null,unit:'metric',
+    sz:{mode:'tops',gender:'men',height:178,weight:75,build:'regular',garment:'hoodie',fit:'regular',pfit:'regular',foot:27,shoeFit:'tts',width:'regular',sel:null,custom:{}}};
+  sbUrl(){return this.props.supabaseUrl||SETTINGS.supabaseUrl||SB_URL;}
+  sbKey(){return this.props.supabaseAnonKey||SETTINGS.supabaseAnonKey||SB_KEY;}
+  syncUrl(replace){const path=fsBase()+fsPath(this.state);if(location.pathname+location.search!==path){try{history[replace?'replaceState':'pushState']({},'',path);}catch(e){}}}
+  routeTick(){const s=this.state,k=[s.page,s.sellerId,s.productId,s.tool,s.cat,s.query].join('|');if(k===this._rk)return;const ps=this._rs||{};this._rk=k;this._rs={...s};
+    const replace=!this._first||!!this.popping||(ps.page===s.page&&ps.sellerId===s.sellerId&&ps.productId===s.productId&&ps.tool===s.tool);
+    this._first=true;queueMicrotask(()=>this.applyRoute(replace));}
+  applyRoute(replace){const s=this.state;this.syncUrl(replace);this.popping=false;if(this.presence&&this.presenceOn){try{this.presence.track(this.presenceInfo());}catch(e){}}
+    const titles={home:'FSFINDS · Verified finds from partner sellers',shop:'Shop · FSFINDS',sellers:'Sellers · FSFINDS',tools:'Tools · FSFINDS',saved:'Account · FSFINDS'};
+    let t=titles[s.page];if(s.page==='seller'){const x=SELLERS.find(v=>v.id===s.sellerId);t=(x?x.name:'Seller')+' · FSFINDS';}if(s.page==='product'){const x=PRODUCTS.find(v=>String(v.id)===String(s.productId));t=(x?x.name:'Find')+' · FSFINDS';}
+    if(t&&document.title!==t)document.title=t;}
+  presenceInfo(){const g=fsGeo()||{};return{page:fsPath(this.state)||'home',cc:g.cc||'',country:g.country||'',dev:innerWidth<760?'mobile':innerWidth<1100?'tablet':'desktop',at:Date.now()};}
+  startPresence(c){if(this.presence)return;let vid=localStorage.getItem('fsf_vid');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('fsf_vid',vid);}
+    try{const ch=c.channel('fsf-online',{config:{presence:{key:vid}}});this.presence=ch;ch.subscribe(s=>{if(s==='SUBSCRIBED'){this.presenceOn=true;ch.track(this.presenceInfo());}});}catch(e){}}
+  initAuth(n=0){const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(this.sbUrl()&&n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);return;}
+    this.startPresence(c);
+    c.auth.getSession().then(({data})=>this.setUser(data&&data.session?data.session.user:null));this.authSub=c.auth.onAuthStateChange((_e,s)=>this.setUser(s?s.user:null));}
+  setUser(u){const prev=this.state.user;this.setState({user:u});if(u&&(!prev||prev.id!==u.id)){this.pullFavs(u);const g=fsGeo()||{};SB&&SB.from('profiles').upsert({id:u.id,email:u.email,last_seen:new Date().toISOString(),country:g.country||null,cc:g.cc||null}).then(()=>{},()=>{});}}
+  setLang(l){this.setState({lang:l});if(window.FSFI18N)window.FSFI18N.set(l);fsTrack('lang',{lang:l});}
+  async pullFavs(u){if(!SB)return;try{const {data}=await SB.from('favorites').select('items,sellers').eq('user_id',u.id).maybeSingle();
+    const items=[...new Set([...((data&&data.items)||[]),...this.state.favs])],sellers=[...new Set([...((data&&data.sellers)||[]),...this.state.favSellers])];
+    localStorage.setItem('fsf_favs',JSON.stringify(items));localStorage.setItem('fsf_fav_sellers',JSON.stringify(sellers));this.setState({favs:items,favSellers:sellers});this.pushFavs(items,sellers);}catch(e){}}
+  pushFavs(items,sellers){const u=this.state.user;if(!SB||!u)return;SB.from('favorites').upsert({user_id:u.id,items,sellers,updated_at:new Date().toISOString()}).then(()=>{},()=>{});}
+  toggleSellerFav(id){const had=this.state.favSellers.includes(id);const list=had?this.state.favSellers.filter(x=>x!==id):[...this.state.favSellers,id];localStorage.setItem('fsf_fav_sellers',JSON.stringify(list));fsTrack(had?'unfav_seller':'fav_seller',{seller:id});this.setState({favSellers:list});this.pushFavs(this.state.favs,list);this.showToast(had?'Seller removed':'Seller saved');}
+  async doAuth(){const st=this.state;if(st.aBusy)return;const c=sbClient(this.sbUrl(),this.sbKey());
+    if(!c)return this.setState({aErr:'Accounts are not connected yet. The site owner needs to add the Supabase keys.'});
+    const email=st.aEmail.trim();if(!/^\S+@\S+\.\S+$/.test(email))return this.setState({aErr:'Enter a valid email.'});
+    if(st.auth!=='reset'&&st.aPw.length<6)return this.setState({aErr:'Password needs at least 6 characters.'});
+    this.setState({aBusy:true,aErr:'',aMsg:''});
+    try{if(st.auth==='signin'){const {error}=await c.auth.signInWithPassword({email,password:st.aPw});if(error)throw error;fsTrack('login');this.setState({auth:null,aPw:''});this.showToast('Welcome back');this.go('saved');}
+      else if(st.auth==='signup'){const {data,error}=await c.auth.signUp({email,password:st.aPw,options:{emailRedirectTo:location.origin+fsBase()+'account'}});if(error)throw error;fsTrack('register');if(data.session){this.setState({auth:null,aPw:''});this.showToast('Account created');this.go('saved');}else this.setState({aMsg:'Check your inbox to confirm your email, then sign in.'});}
+      else{const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:location.origin+fsBase()+'account'});if(error)throw error;this.setState({aMsg:'If that email has an account, a reset link is on its way.'});}}
+    catch(e){this.setState({aErr:(e&&e.message)||'Something went wrong. Try again.'});}
+    this.setState({aBusy:false});}
+  signOut(){if(SB)SB.auth.signOut();this.setState({user:null});this.showToast('Signed out');}
+  componentDidMount(){
+    this.initAuth();
+    fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){try{localStorage.setItem('fsf_pub',JSON.stringify(j));}catch(e){}fsApply(j);this.forceUpdate();}}).catch(()=>{});
+    this.onPop=()=>{this.popping=true;this.setState({...fsParse(),searchOpen:false});window.scrollTo(0,0);};window.addEventListener('popstate',this.onPop);
+    if(this.state.page==='product'&&!PRODUCTS.some(p=>String(p.id)===String(this.state.productId)))this.setState({page:'shop'});
+    if(this.state.page==='seller'&&!SELLERS.some(s=>s.id===this.state.sellerId))this.setState({page:'sellers'});
+    this.popping=true;this._rk=null;this.routeTick();
+    const applyLang=(n=0)=>{if(window.FSFI18N){window.FSFI18N.set(this.state.lang);}else if(n<40)this.tl=setTimeout(()=>applyLang(n+1),150);};this.tl=setTimeout(()=>applyLang(),60);
+    this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
+    const fallbackGeo=()=>{try{const lang=(navigator.languages&&navigator.languages.find(l=>l.includes('-')))||navigator.language||'';const cc=(lang.split('-')[1]||'').toUpperCase();if(cc){const name=new Intl.DisplayNames(['en'],{type:'region'}).of(cc);localStorage.setItem('fsf_geo',JSON.stringify({cc,country:name}));}}catch(e){}};
+    if(!fsGeo())fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>{if(d&&d.country_code)localStorage.setItem('fsf_geo',JSON.stringify({cc:d.country_code,country:d.country_name}));else fallbackGeo();}).catch(fallbackGeo).finally(()=>fsTrack('visit',{page:'home'}));
+    else fsTrack('visit',{page:'home'});
+    this.onScroll=()=>{const s=window.scrollY>12;if(s!==this.state.scrolled)this.setState({scrolled:s});};window.addEventListener('scroll',this.onScroll,{passive:true});
+    this.onKey=e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();this.openSearch();}else if(this.state.lb!=null&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const n=this.lbCount||1;this.setState(s=>({lb:(s.lb+(e.key==='ArrowRight'?1:-1)+n)%n}));}else if(e.key==='Escape'){if(this.state.lb!=null)this.setState({lb:null});else if(this.state.searchOpen)this.setState({searchOpen:false});else if(this.state.popup)this.closePopup();}else if(e.key==='/'&&!/input|textarea/i.test(document.activeElement.tagName)){e.preventDefault();this.openSearch();}};
+    window.addEventListener('keydown',this.onKey);
+    if((SETTINGS.showCouponPopup??this.props.showCouponPopup??true)&&!localStorage.getItem('fsf_popup_seen'))this.t=setTimeout(()=>this.setState({popup:true}),2500);
+    const t0=performance.now();const tick=t=>{const k=Math.min(1,(t-t0)/1500);this.setState({count:1-Math.pow(1-k,3)});if(k<1)this.raf=requestAnimationFrame(tick);};this.raf=requestAnimationFrame(tick);
+    this.t2=setTimeout(()=>this.setState({stepsOn:true}),700);
+  }
+  componentWillUnmount(){try{this.presence&&this.presence.unsubscribe();}catch(e){}window.removeEventListener('popstate',this.onPop);clearTimeout(this.t);clearTimeout(this.t2);clearTimeout(this.tt);cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('scroll',this.onScroll);window.removeEventListener('keydown',this.onKey);}
+  openSearch(){this.setState({searchOpen:true});setTimeout(()=>this.searchEl&&this.searchEl.focus(),40);}
+  agentName(){return SETTINGS.agentName||this.props.agentName||'CSSBuy';}
+  code(){return SETTINGS.promoCode||this.props.promoCode||'FSFINDS';}
+  buyLink(platform,id){const path=platform==='Taobao'?`item-${id}.html`:platform==='1688'?`item-1688-${id}.html`:`item-micro-${id}.html`;return `https://www.cssbuy.com/${path}?promotionCode=${encodeURIComponent(this.code())}`;}
+  go(page,extra={}){fsTrack('view',{page,id:extra.productId||extra.sellerId||null});this.setState(s=>({prev:s.page,page,thumb:0,searchOpen:false,hoverSeller:null,hoverTool:null,...extra}));window.scrollTo({top:0,behavior:'smooth'});}
+  showToast(msg){clearTimeout(this.tt);this.setState({toast:msg,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
+  toggleFav(id){const had=this.state.favs.includes(id);const favs=had?this.state.favs.filter(x=>x!==id):[...this.state.favs,id];localStorage.setItem('fsf_favs',JSON.stringify(favs));this.pushFavs(favs,this.state.favSellers);fsTrack(had?'unfav':'fav',{id});this.setState({favs});this.showToast(had?'Removed from saved':'Saved to your list');}
+  card(p){const s=sellerOf(p.seller);const fav=this.state.favs.includes(p.id);
+    return{...p,sellerName:s.name,priceLabel:'$'+p.price.toFixed(2),cnyLabel:'¥'+(p.priceCny||Math.round(p.price*7.1)),thumbBg:p.image?`url("${p.image}")`:'radial-gradient(circle at 50% 45%,#2A2A30,#1C1C20 70%)',favIcon:fav?'♥':'♡',favBg:fav?'#E5202F':'rgba(11,11,13,.6)',
+      open:()=>this.go('product',{productId:p.id}),toggleFav:e=>{e&&e.stopPropagation&&e.stopPropagation();this.toggleFav(p.id);}};}
+  closePopup(){localStorage.setItem('fsf_popup_seen','1');this.setState({popup:false});}
+  copy(text,key,msg){try{navigator.clipboard.writeText(text);}catch(e){}this.setState({copied:key});this.showToast(msg||'Copied');setTimeout(()=>this.setState(s=>s.copied===key?{copied:null}:null),1600);}
+  runTrack(num){
+    const v=(num??this.state.trackInput).replace(/[^0-9A-Za-z]/g,'').toUpperCase();
+    if(v.length<8)return this.setState({trackError:true,trackNum:''});
+    const recent=[v,...this.state.recent.filter(x=>x!==v)].slice(0,6);localStorage.setItem('fsf_tracks',JSON.stringify(recent));
+    this.setState({trackInput:v,trackNum:v,trackError:false,recent});
+    const tryRender=(n=0)=>{const el=document.getElementById('YQContainer');
+      if(window.YQV5&&el){el.innerHTML='';try{window.YQV5.trackSingle({YQ_ContainerId:'YQContainer',YQ_Height:560,YQ_Fc:'0',YQ_Lang:'en',YQ_Num:v});}catch(e){}}
+      else if(n<20)setTimeout(()=>tryRender(n+1),250);};
+    setTimeout(()=>tryRender(),50);
+  }
+  async runQc(){
+    const r=parseLink(this.state.qcInput);if(!r)return this.setState({qc:{error:true}});
+    fsTrack('qc',{item:r.id});this.setState({qc:{loading:true,...r},lb:null});
+    const t0=Date.now();let data=null;const api=this.props.qcApiUrl;
+    if(api){try{const res=await fetch(`${api}${api.includes('?')?'&':'?'}platform=${encodeURIComponent(r.platform)}&id=${encodeURIComponent(r.id)}`);if(res.ok)data=await res.json();}catch(e){}}
+    const p=PRODUCTS.find(x=>x.itemId===r.id);
+    if((!data||!data.photos||!data.photos.length)&&p){const src=p.qcPhotos.length?p.qcPhotos:Array.from({length:p.qc},()=>null);data={title:p.name,price:p.price,image:p.image,photos:src.map((u,i)=>({url:u,set:Math.floor(i/6)}))};}
+    const c=sbClient(this.sbUrl(),this.sbKey());
+    if(c){try{const {data:rows}=await c.from('qc_photos').select('url,kind,batch,created_at,source').eq('platform',r.platform.toLowerCase()).eq('item_id',r.id).eq('status','approved').order('created_at',{ascending:false}).limit(300);
+        if(rows&&rows.length){data=data||{photos:[]};data.photos=[...(data.photos||[]),...rows.map(x=>({url:x.url,set:'b'+x.batch,date:new Date(x.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),source:x.source}))];}}catch(e){}
+      const found=!!(data&&data.photos&&data.photos.some(x=>x.url));c.rpc('log_qc_search',{p:r.platform.toLowerCase(),i:r.id,f:found}).then(()=>{},()=>{});}
+    const wait=Math.max(0,500-(Date.now()-t0));await new Promise(res=>setTimeout(res,wait));
+    if(this.state.qc.id!==r.id)return;
+    this.setState({qc:{ok:true,...r,product:p?p.id:null,data:data||{photos:[]}}});
+  }
+  runConvert(){
+    const lines=this.state.convInput.split(/\s+/).map(s=>s.trim()).filter(Boolean);
+    const out=[],bad=[];lines.forEach(l=>{const r=parseLink(l);if(r)out.push(r);else bad.push(l.slice(0,40));});
+    this.setState({conv:out,convBad:bad.length?bad.join(', '):''});
+    if(out.length)this.showToast(`${out.length} link${out.length>1?'s':''} converted`);
+  }
+  enter(fn){return e=>{if(e.key==='Enter')fn();};}
+  renderVals(){
+    const st=this.state,agent=this.agentName(),code=this.code();
+    const signupLink=SETTINGS.signupLink||this.props.signupLink||'https://cssb.uy/24Fo';
+    this.routeTick();
+    const page=st.page,mobile=st.w<1100,w=st.w;
+    const active=p=>page===p||(p==='sellers'&&page==='seller')||(p==='shop'&&page==='product');
+    const nav=[['Home','home'],['Shop','shop'],['Sellers','sellers'],['Tools','tools']].map(([label,p])=>{const on=active(p);return{label,bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',go:()=>this.go(p)};});
+    const tabbar=[['Home','home'],['Shop','shop'],['Sellers','sellers'],['Tools','tools'],[st.user?'Account':'Saved','saved']].map(([label,p])=>{const on=active(p);return{label,bg:on?'rgba(229,32,47,.14)':'transparent',fg:on?'#F5F4F2':'#A1A0A6',dot:on?'#E5202F':'transparent',go:()=>this.go(p)};});
+    const sellers=SELLERS.map(s=>{const items=PRODUCTS.filter(p=>p.seller===s.id),h=st.hoverSeller===s.id,sv=st.favSellers.includes(s.id);
+      return{...s,saveIcon:sv?'♥':'♡',saveBg:sv?'#E5202F':'#0B0B0D',toggleSave:e=>{e&&e.stopPropagation&&e.stopPropagation();this.toggleSellerFav(s.id);},count:items.length,meta:`★ ${s.rating} · ${items.length} finds · ${s.platform}`,thumbs:items.slice(0,3).map(p=>({price:'$'+p.price.toFixed(0),bg:p.image?`url("${p.image}")`:'none',shade:p.image?'linear-gradient(transparent 45%,rgba(0,0,0,.7))':'none'})),
+        border:h?'rgba(229,32,47,.6)':'#232327',lift:h?'translateY(-5px)':'none',logoBg:h?'#E5202F':'#26262B',arrow:h?'translateX(4px)':'none',
+        enter:()=>this.setState({hoverSeller:s.id}),leave:()=>this.setState({hoverSeller:null}),open:()=>this.go('seller',{sellerId:s.id})};});
+    const k=st.count;
+    const stats=[[Math.round(PRODUCTS.length*k)+'+','Verified finds','#F5F4F2'],[Math.round(SELLERS.length*k),'Partner sellers','#F5F4F2'],[Math.round(QC_TOTAL*k),'QC photos','#E5202F']].map(s=>({value:s[0],label:s[1],color:s[2]}));
+    const catImgs=SETTINGS.catImages||{};
+    const catTiles=CATS.slice(1).map(([id,label])=>({label,icon:CAT_ICONS[id],img:catImgs[id]||'',imgBg:catImgs[id]?`url("${catImgs[id]}")`:'none',hasImg:!!catImgs[id],noImg:!catImgs[id],tileBg:catImgs[id]?'radial-gradient(circle at 50% 42%,#FFFFFF,#E4E2DF 78%)':'radial-gradient(circle at 50% 55%,rgba(229,32,47,.22),#1C1C20 68%)',countLabel:PRODUCTS.filter(p=>p.cat===id).length+' items',go:()=>this.go('shop',{cat:id,query:''})}));
+    const tools=[['01','Package tracker','Live tracking for 3,000+ carriers with carrier detection.','Track a parcel','track'],['02','QC finder','See our QC photos and search community QC for any link.','Find QC','qc'],['03','Size estimator',"Height and weight in, how each size fits you out.",'Find my size','size'],['04','Link converter',`Turn any marketplace or agent link into a clean ${agent} link.`,'Convert','convert']];
+    const toolCards=tools.map(t=>{const h=st.hoverTool===t[4];return{num:t[0],name:t[1],desc:t[2],cta:t[3],border:h?'rgba(229,32,47,.6)':'#232327',lift:h?'translateY(-5px)':'none',glow:h?'1':'0',iconBg:h?'#E5202F':'#26262B',
+      enter:()=>this.setState({hoverTool:t[4]}),leave:()=>this.setState({hoverTool:null}),go:()=>this.go('tools',{tool:t[4]})};});
+    const steps=[{n:'1',title:`Make a free ${agent} account`,body:`${agent} is the shopping agent every find here ships through. Sign up with code ${code} to get the new-account coupons.`},{n:'2',title:'Order from a partner seller',body:`Open any find and order it on ${agent}. They buy it from the seller and photograph it at the warehouse so you see QC before it ships.`},{n:'3',title:'Ship it in one parcel',body:'Combine your items, choose a shipping line, apply your coupons, then track the parcel here, door to door.'}].map(s=>({...s,fill:st.stepsOn?'scaleX(1)':'scaleX(0)'}));
+    const faqRaw=[[`Is ${agent} safe to use?`,`${agent} is a shopping agent: it buys from Chinese marketplaces for you, checks each item at its warehouse and sends QC photos before you pay for international shipping.`],['How are the partner sellers chosen?','Each seller listed here has been ordered from directly, with consistent QC results and reliable restocks.'],['What does the coupon code do?',`Signing up with code ${code} adds ${agent}'s new-account coupons to your account, used on your shipping bill.`],['Do I pay FSFINDS anything?',`No. The site is free. ${agent} may pay a commission when you sign up or buy through these links, and your price stays the same.`]];
+    const faq=faqRaw.map((f,i)=>{const o=st.faqOpen===i;return{q:f[0],a:f[1],rows:o?'1fr':'0fr',rot:o?'rotate(45deg)':'rotate(0deg)',iconBg:o?'#E5202F':'#26262B',border:o?'rgba(229,32,47,.5)':'#232327',toggle:()=>this.setState(s=>({faqOpen:s.faqOpen===i?null:i}))};});
+    const homeTabs=CATS.map(([id,label])=>{const on=st.homeCat===id;return{label,bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',select:()=>this.setState({homeCat:id})};});
+    const homeItems=PRODUCTS.filter(p=>st.homeCat==='all'||p.cat===st.homeCat).sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)).slice(0,8).map(p=>this.card(p));
+    const q=st.query.trim().toLowerCase();
+    const match=(p,qq)=>(p.name+' '+sellerOf(p.seller).name+' '+p.cat).toLowerCase().includes(qq);
+    const base=PRODUCTS.filter(p=>(st.sellerFilter==='all'||p.seller===st.sellerFilter)&&(!q||match(p,q)));
+    let list=base.filter(p=>st.cat==='all'||p.cat===st.cat);
+    if(st.sort==='low')list=[...list].sort((a,b)=>a.price-b.price);if(st.sort==='high')list=[...list].sort((a,b)=>b.price-a.price);if(st.sort==='qc')list=[...list].sort((a,b)=>b.qc-a.qc);
+    const catChips=CATS.map(([id,label])=>{const on=st.cat===id;return{label,count:id==='all'?base.length:base.filter(p=>p.cat===id).length,bg:on?'#E5202F':'#151518',fg:on?'#fff':'#C9C8CC',border:on?'#E5202F':'#2A2A30',select:()=>this.setState({cat:id})};});
+    const shopTitle=st.cat==='all'?'All finds':CATS.find(c=>c[0]===st.cat)[1];
+    const sObj=SELLERS.find(s=>s.id===st.sellerId)||SELLERS[0];
+    const sItems=PRODUCTS.filter(p=>p.seller===sObj.id);
+    const seller={...sObj,storeLink:(sObj.platform==='Weidian'&&sObj.shop)?`https://www.cssbuy.com/shop-micro-${sObj.shop}.html?promotionCode=${code}`:(sObj.storeUrl||`https://www.cssbuy.com/?promotionCode=${code}`),
+      trackStore:()=>fsTrack('store',{seller:sObj.id}),toggleSave:()=>this.toggleSellerFav(sObj.id),saveLabel:st.favSellers.includes(sObj.id)?'♥ Saved':'♡ Save seller',saveBg:st.favSellers.includes(sObj.id)?'#E5202F':'transparent',saveBorder:st.favSellers.includes(sObj.id)?'#E5202F':'#2A2A30',facts:[{k:'Rating',v:'★ '+sObj.rating},{k:'Finds',v:String(sItems.length)},{k:'Platform',v:sObj.platform},{k:'Ships in',v:sObj.ship},{k:'Partner since',v:sObj.since}]};
+    const pObj=PRODUCTS.find(p=>p.id===st.productId)||PRODUCTS[0];
+    const pc=this.card(pObj),pFav=st.favs.includes(pObj.id),pSeller=sellerOf(pObj.seller);
+    const src=pObj.itemId?sourceUrl(pObj.platform,pObj.itemId):(pSeller.storeUrl||''),buy=pObj.buyUrl||(pObj.itemId?this.buyLink(pObj.platform,pObj.itemId):(pSeller.storeUrl||signupLink));
+    const prod={...pc,sellerCode:pSeller.code,cny:pObj.priceCny?'¥'+pObj.priceCny:'≈ ¥'+Math.round(pObj.price*7.1),desc:pObj.desc||'',hasDesc:!!pObj.desc,buyLink:buy,favLabel:pFav?'♥ Saved':'♡ Save',favBg:pFav?'#E5202F':'#151518',favBorder:pFav?'#E5202F':'#2A2A30',copyLabel:st.copied==='p'?'✓ Copied':'Copy link',
+      openSeller:()=>pObj.seller?this.go('seller',{sellerId:pObj.seller}):this.go('shop',{cat:'all',query:''}),
+      checkQc:()=>{this.go('tools',{tool:'qc',qcInput:src});setTimeout(()=>this.runQc(),0);},
+      checkSize:()=>this.go('tools',{tool:'size',sz:{...st.sz,sel:null,mode:pObj.cat==='shoes'?'shoes':pObj.cat==='pants'?'bottoms':'tops',garment:pObj.cat==='outerwear'?'jacket':pObj.cat==='tops'?'tee':'hoodie'}}),
+      copyLink:()=>{fsTrack('copy',{id:pObj.id,seller:pObj.seller});this.copy(buy,'p',`${agent} link copied`);},trackBuy:()=>fsTrack('buy',{id:pObj.id,seller:pObj.seller})};
+    const gal=[{url:pObj.image||null,label:'Main'},...(pObj.photos||[]).filter(u=>!isVideoUrl(u)).map((u,i)=>({url:u,label:'Photo '+(i+2)})),...(pObj.qcPhotos.length?pObj.qcPhotos.map((u,i)=>({url:u,label:'QC '+(i+1)})):Array.from({length:Math.min(pObj.qc,12)},(_,i)=>({url:null,label:'QC '+(i+1)})))];
+    const nThumbs=Math.max(1,gal.length),ti=st.thumb%nThumbs;
+    const prodSpecs=[{k:'Seller',v:pSeller.name},{k:'Platform',v:pObj.platform},{k:'Item ID',v:pObj.itemId},{k:'QC photos',v:String(pObj.qc)},{k:'Est. weight',v:pObj.kg.toFixed(2)+' kg'}];
+    const prodThumbs=gal.map((g,i)=>({label:g.url?'':g.label,bg:g.url?`url("${g.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',border:ti===i?'#E5202F':'transparent',select:()=>this.setState({thumb:i})}));
+    const cur=gal[ti]||{};
+    const prodImgBg=cur.url?`url("${cur.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#151518 70%)';
+    const prodImgLabel=cur.url?'':(ti===0?'product photo':cur.label);
+    const related=PRODUCTS.filter(p=>p.seller===pObj.seller&&p.id!==pObj.id).map(p=>this.card(p));
+    const toolTabs=tools.map(t=>{const on=st.tool===t[4];return{label:mobile?t[1].split(' ')[0]:t[1],bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',select:()=>this.setState({tool:t[4]})};});
+    const det=detectCarrier((st.trackInput||'').replace(/[^0-9A-Za-z]/g,'').toUpperCase());
+    const tn=st.trackNum,tDet=tn?detectCarrier(tn):det;
+    let qc=st.qc,qcOk=!!qc.ok,flat=[];
+    if(qcOk){const p=PRODUCTS.find(x=>x.id===qc.product);const src2=sourceUrl(qc.platform,qc.id);const d=qc.data||{photos:[]};
+      const norm=(d.photos||[]).map((ph,i)=>typeof ph==='string'?{url:ph,set:Math.floor(i/6)}:{url:ph.url||null,set:ph.set??Math.floor(i/6),date:ph.date});
+      const groups={};norm.forEach(ph=>{(groups[ph.set]=groups[ph.set]||[]).push(ph);});
+      const now=Date.now();
+      const sets=Object.keys(groups).map((key,si)=>{const arr=groups[key];const date=arr[0].date||new Date(now-(si*9+2)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        const label=`QC set ${si+1}`;
+        return{label,meta:`${date} · ${arr.length} photos`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
+      const n=norm.length;
+      qc={...qc,match:!!p,title:d.title||(p?p.name:`${qc.platform} item ${qc.id}`),priceLabel:d.price?'$'+(+d.price).toFixed(2):'Price on '+agent,
+        thumbBg:d.image?`url("${d.image}")`:'radial-gradient(circle at 50% 45%,#2A2A30,#1C1C20 70%)',buyLink:this.buyLink(qc.platform,qc.id),
+        statusLabel:n?'QC photos found':'No QC yet',statusBg:n?'rgba(61,220,132,.12)':'#1C1C20',statusFg:n?'#3DDC84':'#A1A0A6',
+        photoCountLabel:`${n} photo${n===1?'':'s'}`,setCountLabel:`${sets.length} set${sets.length===1?'':'s'}`,sets,empty:n===0,
+        openProduct:()=>p&&this.go('product',{productId:p.id,thumb:1}),trackBuy:()=>fsTrack('buy',{id:p?p.id:null,seller:p?p.seller:null,item:qc.id}),
+        sources:[{name:`Open on ${agent}`,desc:'Warehouse QC appears after you order.',url:this.buyLink(qc.platform,qc.id)},{name:`Original ${qc.platform} listing`,desc:'Seller photos and options.',url:src2},{name:'Reddit QC posts',desc:'Community QC threads for this item ID.',url:`https://www.reddit.com/search/?q=${qc.id}`},{name:'Google images',desc:'Other buyers\' photos of this item ID.',url:`https://www.google.com/search?tbm=isch&q=${qc.id}`}]};}
+    const z=st.sz,h=+z.height||175,wt=+z.weight||70,imp=st.unit==='imperial',mode=z.mode||'tops',fem=z.gender==='women';
+    const L=cm=>imp?(cm/2.54).toFixed(1)+' in':(Math.round(cm*10)/10)+' cm';
+    const sgn=v=>(v>=0?'+':'−')+L(Math.abs(v));
+    const adj={slim:-4,regular:0,athletic:4,broad:7}[z.build]||0;
+    const setSz=(key,v)=>this.setState(s=>({sz:{...s.sz,[key]:v,...(key==='sel'?{}:{sel:null})}}));
+    const seg=on=>({bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6'});
+    const grp=(label,key,opts,def)=>({label,opts:opts.map(([v,l])=>({label:l,...seg((z[key]??def)===v),select:()=>setSz(key,v)}))});
+    const clampPct=v=>Math.max(3,Math.min(97,v)).toFixed(1)+'%';
+    const mKey='m_'+mode,mRaw=z[mKey],measured=mRaw!==undefined&&mRaw!==''&&+mRaw>0?(imp?+mRaw*2.54:+mRaw):null;
+    const gGender=grp('Body','gender',[['men','Men'],['women','Women']],'men'),gBuild=grp('Build','build',[['slim','Slim'],['regular','Regular'],['athletic','Athletic'],['broad','Broad']],'regular');
+    let res={},szGroups=[],chartInputs=[],measurePlaceholder='',measureLabel='',szIntro='';
+    if(mode==='tops'){
+      const est=Math.round((fem?88:97)+(wt-(fem?60:70))*0.7+(h-(fem?165:175))*0.1+adj),chest=measured?Math.round(measured):est;
+      const g=z.garment||'hoodie',base=CHARTS[g]||CHARTS.hoodie,custom=(z.custom&&z.custom[g])||{};
+      const chart=Object.entries(base).map(([s,[c,l]])=>[s,+custom[s]||c,l]);const target=TARGET[z.fit||'regular'];
+      let best=chart[0][0],bd=1e9;chart.forEach(([s,c])=>{const d=Math.abs(c-chest-target);if(d<bd){bd=d;best=s;}});
+      const shown=z.sel&&chart.find(r=>r[0]===z.sel)?z.sel:best,row=chart.find(r=>r[0]===shown),ease=row[1]-chest;
+      const close=chart.filter(([s,c])=>Math.abs(c-chest-target)<=2.5).length>1;
+      const word=e=>e<3?'Tight':e<10?'Regular':e<16?'Relaxed':'Oversized';
+      res={kicker:shown===best?'Your size':'Selected size',rec:shown,line1:`${measured?'Your':'Est.'} chest ${L(chest)} · ${sgn(ease)} room`,
+        line2:shown!==best?`${best} is the closest match for a ${z.fit||'regular'} fit.`:close?'Between sizes: size down for a closer fit, up for a looser one.':`Best match for a ${z.fit||'regular'} fit.`,
+        meter:clampPct((ease+4)/24*100),meterL:'Tight',meterM:'Regular',meterR:'Oversized',h1:'Size',h2:'Chest',h3:'Length',h4:'On you',
+        rows:chart.map(([s,c,l])=>{const e=c-chest,on=s===shown;return{c1:s,c2:L(c),c3:L(l),c4:`${word(e)} · ${sgn(e)}`,barW:Math.max(4,Math.min(56,(e+6)*2.4))+'px',barC:on?'#E5202F':s===best?'#7A2A30':'#3A3A40',weight:on?'700':'400',fg:on?'#FF5A64':'#F5F4F2',bg:on?'rgba(229,32,47,.08)':'transparent',pick:()=>setSz('sel',s)};})};
+      chartInputs=chart.map(([s,c])=>({size:s,value:custom[s]??base[s][0],border:custom[s]?'#7A2A30':'#2A2A30',onChange:e=>{const v=e.target.value;this.setState(S=>{const cu={...(S.sz.custom||{})};cu[g]={...(cu[g]||{}),[s]:v};return{sz:{...S.sz,custom:cu,sel:null}};});}}));
+      szGroups=[gGender,gBuild,grp('Garment','garment',[['tee','Tee'],['hoodie','Hoodie'],['jacket','Jacket']],'hoodie'),grp('Preferred fit','fit',[['fitted','Fitted'],['regular','Regular'],['oversized','Oversized']],'regular')];
+      measureLabel='Know your chest? Measure around the fullest part (optional).';measurePlaceholder=String(imp?(est/2.54).toFixed(1):est);
+      szIntro='Tees, hoodies and jackets. Tap any row to compare sizes.';
+    }else if(mode==='bottoms'){
+      const est=Math.round((fem?70:79)+(wt-(fem?60:70))*0.6+(h-(fem?165:175))*0.05+adj*0.5),waist=measured?Math.round(measured):est,ideal=Math.round(h*0.59);
+      const chart=Object.entries(PANTS),fitK=z.pfit||'regular',target={slim:-1,regular:1,baggy:5}[fitK];
+      let best=chart[0][0],bd=1e9;chart.forEach(([s,[c]])=>{const d=Math.abs(c-waist-target);if(d<bd){bd=d;best=s;}});
+      const shown=z.sel&&PANTS[z.sel]?z.sel:best,[wc,lc]=PANTS[shown],ease=wc-waist,ld=lc-ideal;
+      const lenNote=ld>3?'Long on you, expect some stacking.':ld<-3?'Might sit cropped above the ankle.':'Length looks right for your height.';
+      const word=e=>e<0?'Tight':e<4?'Regular':e<8?'Relaxed':'Baggy';
+      res={kicker:shown===best?'Your size':'Selected size',rec:shown,line1:`${measured?'Your':'Est.'} waist ${L(waist)} · ${sgn(ease)} room`,line2:lenNote,
+        meter:clampPct((ease+4)/16*100),meterL:'Tight',meterM:'Regular',meterR:'Baggy',h1:'Size',h2:'Waist',h3:'Length',h4:'On you',
+        rows:chart.map(([s,[c,l]])=>{const e=c-waist,on=s===shown,d=l-ideal;return{c1:s,c2:L(c),c3:`${L(l)} (${d>=0?'+':'−'}${Math.abs(d)})`,c4:`${word(e)} · ${sgn(e)}`,barW:Math.max(4,Math.min(56,(e+4)*3.5))+'px',barC:on?'#E5202F':s===best?'#7A2A30':'#3A3A40',weight:on?'700':'400',fg:on?'#FF5A64':'#F5F4F2',bg:on?'rgba(229,32,47,.08)':'transparent',pick:()=>setSz('sel',s)};})};
+      szGroups=[gGender,gBuild,grp('Preferred fit','pfit',[['slim','Slim'],['regular','Regular'],['baggy','Baggy']],'regular')];
+      measureLabel='Know your waist? Measure where your pants usually sit (optional).';measurePlaceholder=String(imp?(est/2.54).toFixed(1):est);
+      szIntro='Jeans, trousers and cargos. Length is compared with your height.';
+    }else{
+      const foot=+z.foot||27,allow=5+({small:5,tts:0,large:-5}[z.shoeFit||'tts'])+({narrow:-2,regular:0,wide:4}[z.width||'regular']);
+      const need=foot*10+allow;let ri=SHOES.findIndex(r=>r[0]>=need);if(ri<0)ri=SHOES.length-1;
+      const si=z.sel!=null&&SHOES[z.sel]?z.sel:ri,r=SHOES[si],room=r[0]-foot*10;
+      const lo=Math.max(0,Math.min(si,ri)-2),hi=Math.min(SHOES.length,Math.max(si,ri)+3);
+      res={kicker:si===ri?'Your size · EU':'Selected · EU',rec:String(r[1]),line1:`US M ${r[2]} · US W ${r[3]} · UK ${r[4]}`,line2:`Foot ${imp?(foot/2.54).toFixed(2)+' in':foot.toFixed(1)+' cm'} · ${room} mm toe room${si!==ri?' · EU '+SHOES[ri][1]+' is the closest match':''}`,
+        meter:clampPct((room+5)/20*100),meterL:'Snug',meterM:'Ideal',meterR:'Loose',h1:'EU',h2:'US M / W',h3:'UK',h4:'Insole · room',
+        rows:SHOES.slice(lo,hi).map((row,k)=>{const i=lo+k,on=i===si,rm=row[0]-foot*10;return{c1:String(row[1]),c2:row[2]+' / '+row[3],c3:String(row[4]),c4:`${row[0]} mm · ${rm>=0?'+':'−'}${Math.abs(rm)} mm`,barW:Math.max(4,Math.min(56,(rm+5)*2.5))+'px',barC:on?'#E5202F':i===ri?'#7A2A30':'#3A3A40',weight:on?'700':'400',fg:on?'#FF5A64':'#F5F4F2',bg:on?'rgba(229,32,47,.08)':'transparent',pick:()=>setSz('sel',i)};})};
+      szGroups=[grp('Brand fit','shoeFit',[['small','Runs small'],['tts','True to size'],['large','Runs large']],'tts'),grp('Foot width','width',[['narrow','Narrow'],['regular','Regular'],['wide','Wide']],'regular')];
+      szIntro='Measure your foot standing on paper, heel against the wall.';
+    }
+    const sz={...z,heightLabel:imp?`${Math.floor(h/30.48)}′${Math.round((h/2.54)%12)}″`:h+' cm',weightLabel:imp?Math.round(wt*2.205)+' lb':wt+' kg'};
+    const szModeTabs=[['tops','Tops'],['bottoms','Bottoms'],['shoes','Shoes']].map(([m,l])=>({label:l,...seg(mode===m),select:()=>setSz('mode',m)}));
+    const szVals={szIntro,szModeTabs,szBody:mode!=='shoes',szShoes:mode==='shoes',szTops:mode==='tops',res,chartInputs,measureLabel,measurePlaceholder,measureUnit:imp?'in':'cm',measureVal:mRaw??'',
+      onMeasure:e=>setSz(mKey,e.target.value),resetChart:()=>{this.setState(S=>{const cu={...(S.sz.custom||{})};delete cu[z.garment||'hoodie'];return{sz:{...S.sz,custom:cu,sel:null}};});this.showToast('Chart reset');},
+      footVal:+z.foot||27,footLabel:imp?((+z.foot||27)/2.54).toFixed(2)+' in':(+z.foot||27).toFixed(1)+' cm',onFoot:e=>setSz('foot',e.target.value),
+      usualEu:'',euOptions:SHOES.map(r=>({v:String(r[0]),label:`EU ${r[1]} · US M ${r[2]}`})),onUsualEu:e=>{const v=+e.target.value;if(v)setSz('foot',((v-5)/10).toFixed(1));}};
+    const unitTabs=[['metric','cm / kg'],['imperial','in / lb']].map(([u,l])=>({label:l,bg:st.unit===u?'#E5202F':'transparent',fg:st.unit===u?'#fff':'#A1A0A6',select:()=>this.setState({unit:u})}));
+    const convRows=st.conv.map((r,i)=>{const url=this.buyLink(r.platform,r.id),c=st.copied==='c'+i;return{platform:r.platform,url,clean:sourceUrl(r.platform,r.id),copyLabel:c?'✓ Copied':'Copy',copyBg:c?'#E5202F':'transparent',copyBorder:c?'#E5202F':'#2A2A30',copy:()=>this.copy(url,'c'+i,'Link copied')};});
+    this.lbCount=flat.length;
+    const savedItems=PRODUCTS.filter(p=>st.favs.includes(p.id)).map(p=>this.card(p));
+    const savedTotal='$'+PRODUCTS.filter(p=>st.favs.includes(p.id)).reduce((a,p)=>a+p.price,0).toFixed(2);
+    const sq=st.searchQ.trim().toLowerCase();
+    const searchHits=(sq?PRODUCTS.filter(p=>match(p,sq)):PRODUCTS.slice().sort((a,b)=>b.qc-a.qc)).slice(0,6).map(p=>this.card(p));
+    const sellerHits=sq?sellers.filter(s=>(s.name+' '+s.tag).toLowerCase().includes(sq)).slice(0,3):[];
+    const searchAll=()=>{if(st.searchQ.trim())fsTrack('search',{q:st.searchQ.trim().slice(0,60)});this.go('shop',{query:st.searchQ,cat:'all',searchQ:''});};
+    const cc=st.copied==='coupon';
+    return{
+      trackSignup:()=>fsTrack('signup'),langs:[['en','flag:us-4x3','English'],['pt','flag:br-4x3','Português']].map(([l,ic,t])=>({icon:ic,title:t,bg:st.lang===l?'#2A2A30':'transparent',fg:st.lang===l?'#fff':'#A1A0A6',select:()=>this.setLang(l)})),
+      otherFlag:st.lang==='pt'?'flag:us-4x3':'flag:br-4x3',toggleLang:()=>this.setLang(st.lang==='pt'?'en':'pt'),agentName:agent,couponCode:code,signupLink,nav,tabbar,mobile,desktop:!mobile,bottomPad:mobile?'84px':'0px',
+      navPad:st.scrolled?'8px 12px':'14px 12px',navBg:st.scrolled?'rgba(17,17,20,.82)':'rgba(17,17,20,.5)',navBorder:st.scrolled?'#2A2A30':'#1E1E22',navShadow:st.scrolled?'0 14px 40px -18px rgba(0,0,0,.9)':'none',
+      favCount:st.favs.length,hasFavs:st.favs.length>0,
+      liveLabel:`${PRODUCTS.length}+ verified finds listed`,searchPlaceholder:`Search ${PRODUCTS.length} finds and ${SELLERS.length} sellers…`,
+      isHome:page==='home',isShop:page==='shop',isSellers:page==='sellers',isSeller:page==='seller',isProduct:page==='product',isTools:page==='tools',isSaved:page==='saved',
+      goHome:()=>this.go('home'),goShop:()=>this.go('shop',{cat:'all',query:''}),goSellers:()=>this.go('sellers'),goSaved:()=>this.go('saved'),
+      stats,statCols:`repeat(${w<520?1:3},minmax(0,1fr))`,catTiles,
+      sellers,toolCards,toolCols:`repeat(${w>=1060?4:w>=560?2:1},minmax(0,1fr))`,steps,faq,homeTabs,homeItems,homeViewAll:()=>this.go('shop',{cat:st.homeCat,query:''}),
+      query:st.query,onQuery:e=>this.setState({query:e.target.value}),sort:st.sort,onSort:e=>this.setState({sort:e.target.value}),sellerFilter:st.sellerFilter,onSellerFilter:e=>this.setState({sellerFilter:e.target.value}),
+      catChips,shopTitle,shopItems:list.map(p=>this.card(p)),shopCount:list.length,shopEmpty:list.length===0,clearFilters:()=>this.setState({cat:'all',query:'',sellerFilter:'all'}),
+      seller,sellerItems:sItems.map(p=>this.card(p)),
+      prod,prodSpecs,prodThumbs,prodImgBg,prodImgLabel,related,thumbCounter:`${ti+1} / ${nThumbs}`,
+      thumbPrev:()=>this.setState(s=>({thumb:(s.thumb+nThumbs-1)%nThumbs})),thumbNext:()=>this.setState(s=>({thumb:(s.thumb+1)%nThumbs})),
+      toolTabs,tTrack:st.tool==='track',tQc:st.tool==='qc',tSize:st.tool==='size',tConvert:st.tool==='convert',
+      trackInput:st.trackInput,onTrackInput:e=>this.setState({trackInput:e.target.value,trackError:false}),runTrack:()=>this.runTrack(),trackKey:this.enter(()=>this.runTrack()),
+      trackDetected:!!tDet,trackCarrier:tDet?tDet.name:'',trackError:st.trackError,trackOk:!!tn,track17:`https://t.17track.net/en#nums=${tn}`,trackOfficial:tn&&tDet&&tDet.url?tDet.url:'',
+      trackFrameH:tn?'560px':'0px',copyTrack:()=>this.copy(tn,'t','Tracking number copied'),copyTrackLabel:st.copied==='t'?'✓ Copied':'Copy number',
+      recentTracks:st.recent.map(n=>({num:n,go:()=>this.runTrack(n)})),hasRecentTracks:st.recent.length>0,clearTracks:()=>{localStorage.removeItem('fsf_tracks');this.setState({recent:[]});},
+      qcUpLabel:st.qcUp||'Upload photos',
+      qcUpload:async e=>{const files=[...(e.target.files||[])].slice(0,12);e.target.value='';const q=this.state.qc;if(!files.length||!q.id)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const batch=Date.now();let ok=0;
+        for(let i=0;i<files.length;i++){this.setState({qcUp:`Uploading ${i+1}/${files.length}…`});try{const d=await fsFileB64(files[i],1600);await fsInvoke(c,{action:'upload',name:d.name,data:d.b64,qc:{platform:q.platform.toLowerCase(),item_id:q.id,batch}});ok++;}catch(err){this.showToast(err.message);}}
+        this.setState({qcUp:''});if(ok){this.showToast(`${ok} file${ok>1?'s':''} sent for review`);fsTrack('qc_upload',{item:q.id,n:ok});}},
+      qcInput:st.qcInput,onQcInput:e=>this.setState({qcInput:e.target.value}),runQc:()=>this.runQc(),qcKey:this.enter(()=>this.runQc()),qc,qcOk,qcError:!!st.qc.error,qcLoading:!!st.qc.loading,skeletons:Array.from({length:6},(_,i)=>({i})),
+      lbOpen:st.lb!=null&&!!flat[st.lb],lb:(()=>{const f=flat[st.lb];if(!f)return{};return{bg:f.url?`url("${f.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#151518 70%)',label:f.url?'':`QC photo ${f.n}`,setLabel:f.setLabel,counter:`${st.lb+1} / ${flat.length}`};})(),
+      lbClose:()=>this.setState({lb:null}),lbPrev:()=>this.setState(s=>({lb:(s.lb-1+flat.length)%flat.length})),lbNext:()=>this.setState(s=>({lb:(s.lb+1)%flat.length})),
+      convInput:st.convInput,onConvInput:e=>this.setState({convInput:e.target.value}),runConvert:()=>this.runConvert(),convRows,convMulti:convRows.length>1,convError:!!st.convBad,convBad:st.convBad,
+      copyAllConv:()=>this.copy(convRows.map(r=>r.url).join('\n'),'all',`${convRows.length} links copied`),copyAllLabel:st.copied==='all'?'✓ Copied':'Copy all',
+      ...szVals,sz,szGroups,unitTabs,onHeight:e=>setSz('height',e.target.value),onWeight:e=>setSz('weight',e.target.value),
+      savedItems,savedEmpty:savedItems.length===0,savedTotal,
+      ...(()=>{const u=st.user,mode=st.auth;const ss=SELLERS.filter(s=>st.favSellers.includes(s.id));
+        const titles={signin:['Welcome back','Sign in to see your saved finds and sellers','Sign in','Forgot password?'],signup:['Create your account','Save finds and sellers on every device','Create account','Already have an account? Sign in'],reset:['Reset password','We will email you a reset link','Send reset link','Back to sign in']};const tt=titles[mode||'signin'];
+        return{isGuest:!u,isUser:!!u,avatarText:u?(u.email||'?')[0].toUpperCase():'FS',avatarBg:u?'#E5202F':'#26262B',acctLabel:u?'Account':'Sign in',
+          accountClick:()=>u?this.go('saved'):this.setState({auth:'signin',aErr:'',aMsg:''}),openSignIn:()=>this.setState({auth:'signin',aErr:'',aMsg:''}),openSignUp:()=>this.setState({auth:'signup',aErr:'',aMsg:''}),signOut:()=>this.signOut(),
+          acctTitle:u?u.email:'Your FSFINDS account',acctSub:u?'Member since '+new Date(u.created_at||Date.now()).toLocaleDateString('en-US',{month:'long',year:'numeric'}):'You are browsing as a guest. Saved items stay on this device until you sign in.',
+          acctStats:[{v:st.favs.length,l:'Saved finds'},{v:ss.length,l:'Saved sellers'},{v:st.recent.length,l:'Tracked parcels'}],
+          acctTabs:[['finds','Saved finds','ph:heart'],['sellers','Saved sellers','ph:storefront']].map(([id,l,ic])=>({label:l,icon:ic,bg:st.acctTab===id?'#E5202F':'transparent',fg:st.acctTab===id?'#fff':'#A1A0A6',select:()=>this.setState({acctTab:id})})),
+          tabFinds:st.acctTab==='finds',tabSellers:st.acctTab==='sellers',savedSellersEmpty:ss.length===0,
+          savedSellers:ss.map(s=>({code:s.code,logo:s.logo||'',hasLogo:!!s.logo,logoBgImg:s.logo?`url("${s.logo}")`:'none',name:s.name,meta:`${s.tag} · ${PRODUCTS.filter(p=>p.seller===s.id).length} finds`,open:()=>this.go('seller',{sellerId:s.id}),remove:e=>{e.stopPropagation();this.toggleSellerFav(s.id);}})),
+          authOpen:!!mode,authTitle:tt[0],authSub:tt[1],authCta:st.aBusy?'Please wait…':tt[2],authAltLabel:tt[3],aBusyOpacity:st.aBusy?'.6':'1',
+          authAlt:()=>this.setState({auth:mode==='signin'?'reset':'signin',aErr:'',aMsg:''}),authTabsOn:mode!=='reset',authShowPw:mode!=='reset',
+          authTabs:[['signin','Sign in'],['signup','Create account']].map(([m,l])=>({label:l,bg:mode===m?'#E5202F':'transparent',fg:mode===m?'#fff':'#A1A0A6',select:()=>this.setState({auth:m,aErr:'',aMsg:''})})),
+          aEmail:st.aEmail,aPw:st.aPw,onAEmail:e=>this.setState({aEmail:e.target.value,aErr:''}),onAPw:e=>this.setState({aPw:e.target.value,aErr:''}),authKey:e=>{if(e.key==='Enter')this.doAuth();},
+          doAuth:()=>this.doAuth(),closeAuth:()=>this.setState({auth:null}),aErr:st.aErr,aMsg:st.aMsg};})(),
+      toast:st.toast,toastY:st.toastOn?'0px':'120px',toastOpacity:st.toastOn?'1':'0',toastBottom:mobile?'96px':'24px',
+      searchOpen:st.searchOpen,openSearch:()=>this.openSearch(),closeSearch:()=>this.setState({searchOpen:false}),searchRef:el=>{this.searchEl=el;},
+      searchQ:st.searchQ,onSearchQ:e=>this.setState({searchQ:e.target.value}),searchKey:this.enter(searchAll),searchAll,
+      searchHits,sellerHits,hasSellerHits:sellerHits.length>0,noSearchHits:!!sq&&searchHits.length===0&&sellerHits.length===0,hasSearchQ:!!sq,searchHeading:sq?'Finds':'Popular finds',
+      showPopup:st.popup,openPopup:()=>this.setState({popup:true}),closePopup:()=>this.closePopup(),stop:e=>e.stopPropagation(),
+      copyCoupon:()=>this.copy(code,'coupon','Code copied'),couponCopyLabel:cc?'✓ Copied':'Copy',couponBtnBg:cc?'#3DDC84':'#E5202F'
+    };
+  }
+}
+</script>
+</body>
+</html>

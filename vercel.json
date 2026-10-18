@@ -1,16 +1,17 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/admin",
       "destination": "/admin.html"
     },
     {
-      "source": "/admin/(.*)",
+      "source": "/admin/:path*",
       "destination": "/admin.html"
     },
     {
-      "source": "/((?!assets/|support\\.js|fsf-i18n\\.js|ProductCardV4\\.dc\\.html|admin\\.html).*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
