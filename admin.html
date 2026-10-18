@@ -61,7 +61,7 @@ select option{background:#151518;color:#F5F4F2}
       <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:160px"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em">{{ pageTitle }}</span><span style="font-size:13px;color:#A1A0A6">{{ pageSub }}</span></div>
       <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button onClick="{{ toggleSample }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#C9C8CC;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer"><span style="width:28px;height:16px;border-radius:8px;background:{{ sampleTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:2px;left:{{ sampleKnob }};width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s"></span></span>Sample data</button>
+          
           <div style="display:flex;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:3px"><sc-for list="{{ ranges }}" as="r"><button onClick="{{ r.select }}" style="border:none;background:{{ r.bg }};color:{{ r.fg }};padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s">{{ r.label }}</button></sc-for></div>
         </div>
       </sc-if>
@@ -393,7 +393,7 @@ select option{background:#151518;color:#F5F4F2}
   </div>
 </sc-if>
 
-<div style="position:fixed;left:50%;bottom:24px;z-index:70;transform:translateX(-50%) translateY({{ toastY }});opacity:{{ toastOpacity }};transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .25s;pointer-events:none;background:#F5F4F2;color:#0B0B0D;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#E5202F"></span>{{ toast }}</div>
+<div style="position:fixed;left:50%;bottom:{{ toastBottom }};z-index:70;transform:translateX(-50%) translateY({{ toastY }});opacity:{{ toastOpacity }};transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .25s;pointer-events:none;background:#F5F4F2;color:#0B0B0D;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#E5202F"></span>{{ toast }}</div>
 
 </div>
 </x-dc>
@@ -441,11 +441,15 @@ class Component extends DCLogic {
   state={authed:false,checking:true,email:'',pw:'',pwError:false,loginErr:'',busy:false,section:'dash',range:30,sample:null,w:window.innerWidth,
     db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null,dirty:localStorage.getItem('fsf_dirty')==='1',uploading:'',publishing:false,qcPending:[],qcMissing:[]};
   loadDb(){try{const d=JSON.parse(localStorage.getItem('fsf_db')||'null');if(d&&d.sellers)return{settings:{},...d};}catch(e){}return{sellers:STARTER_SELLERS,products:STARTER_PRODUCTS,settings:{}};}
-  loadEvents(){try{return JSON.parse(localStorage.getItem('fsf_events')||'[]');}catch(e){return[];}}
+  loadEvents(){return [];}
+  async fetchEvents(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const since=new Date(Date.now()-180*864e5).toISOString();let all=[];
+    try{for(let i=0;i<60;i++){const {data,error}=await c.from('events').select('created_at,type,vid,cc,country,dev,ref,data').gte('created_at',since).order('created_at',{ascending:true}).range(i*1000,i*1000+999);if(error)throw error;all=all.concat(data||[]);if(!data||data.length<1000)break;}
+      this.setState({events:all.map(e=>({...(e.data||{}),t:Date.parse(e.created_at),type:e.type,vid:e.vid,cc:e.cc||'',country:e.country||'',dev:e.dev,ref:e.ref||'direct'})),eventsErr:''});}
+    catch(e){this.setState({eventsErr:e.message||'Could not load analytics'});}}
   componentDidMount(){this.initAuth();
     if(localStorage.getItem('fsf_dirty')!=='1')fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){const db={...this.state.db,sellers:j.sellers||[],products:j.products||[],settings:{...this.state.db.settings,...(j.settings||{})}};localStorage.setItem('fsf_db',JSON.stringify(db));this.setState({db});}}).catch(()=>{});this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
-    this.onStorage=e=>{if(e.key==='fsf_events')this.setState({events:this.loadEvents()});};window.addEventListener('storage',this.onStorage);
-    this.poll=setInterval(()=>this.setState({events:this.loadEvents()}),15000);
+    this.onStorage=()=>{};window.addEventListener('storage',this.onStorage);
+    this.poll=setInterval(()=>{if(this.state.authed)this.fetchEvents();},60000);
     this.onKey=e=>{if(e.key==='Escape')this.setState({drawer:null,confirm:null});};window.addEventListener('keydown',this.onKey);}
   componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('storage',this.onStorage);window.removeEventListener('keydown',this.onKey);clearInterval(this.poll);clearTimeout(this.tt);}
   saveDb(db,msg){localStorage.setItem('fsf_db',JSON.stringify(db));localStorage.setItem('fsf_dirty','1');this.setState({db,dirty:true});if(msg)this.showToast(msg);}
@@ -468,7 +472,7 @@ class Component extends DCLogic {
   isAdmin(u){if(!u)return false;const list=(this.props.adminEmails||'flavianobusiness@gmail.com').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return list.includes((u.email||'').toLowerCase())||(u.app_metadata&&u.app_metadata.role==='admin');}
   initAuth(n=0){if(!this.sbUrl()){this.setState({checking:false,authed:sessionStorage.getItem('fsf_admin')==='1'});return;}
     const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);else this.setState({checking:false});return;}
-    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok){this.loadUsers();this.loadQc();}});}
+    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok){this.loadUsers();this.loadQc();this.fetchEvents();}});}
   async loadUsers(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;this.setState({usersLoading:true,usersErr:''});
     try{const [p,f]=await Promise.all([c.from('profiles').select('*').order('created_at',{ascending:false}).limit(1000),c.from('favorites').select('user_id,items,sellers').limit(1000)]);
       if(p.error)throw p.error;const fav={};((f&&f.data)||[]).forEach(r=>{fav[r.user_id]=r;});
@@ -482,7 +486,7 @@ class Component extends DCLogic {
     const {data,error}=await c.auth.signInWithPassword({email:st.email.trim(),password:st.pw});
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
-    this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();}
+    this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();}
   openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:''},formError:''});}
   saveDrawer(){const st=this.state,db={...st.db};
@@ -498,7 +502,7 @@ class Component extends DCLogic {
     this.setState({drawer:null});}
   renderVals(){
     const st=this.state,db=st.db,mobile=st.w<900,w=st.w;
-    const real=st.events.filter(e=>!e.sample);const sampleOn=st.sample==null?real.length<30:st.sample;
+    const real=st.events.filter(e=>!e.sample);const sampleOn=false;
     if(sampleOn&&!this._sample)this._sample=sampleEvents(db.products);
     const all=sampleOn?[...(this._sample||[]),...real]:real;
     const now=Date.now(),R=st.range,from=now-R*864e5,prevFrom=from-R*864e5;
@@ -558,7 +562,7 @@ class Component extends DCLogic {
       loginHint:this.sbUrl()?'Use the admin email and password you created in Supabase.':'Supabase is not connected yet. Local preview password: fsfinds',pw:st.pw,onPw:e=>this.setState({pw:e.target.value,pwError:false}),pwKey:e=>{if(e.key==='Enter')this.login();},login:()=>this.login(),pwError:st.pwError,pwBorder:st.pwError?'#E5202F':'#2A2A30',
       logout:()=>{sessionStorage.removeItem('fsf_admin');if(SB)SB.auth.signOut();this.setState({authed:false});},
       mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',isQc:sec==='qc',
-      showPublish:st.authed&&(st.dirty||!!st.uploading),publishText:st.uploading||'Unpublished changes',publishLabel:st.publishing?'Publishing…':'Publish to GitHub',publishOpacity:st.publishing||st.uploading?'.6':'1',publish:()=>this.publish(),uploadingNow:!!st.uploading,
+      showPublish:st.authed&&(st.dirty||!!st.uploading),toastBottom:st.authed&&(st.dirty||!!st.uploading)?'96px':'24px',publishText:st.uploading||'Unpublished changes',publishLabel:st.publishing?'Publishing…':'Publish to GitHub',publishOpacity:st.publishing||st.uploading?'.6':'1',publish:()=>this.publish(),uploadingNow:!!st.uploading,
       loadQc:()=>this.loadQc(),qcPendingCount:st.qcPending.length,qcNoPending:st.qcPending.length===0,qcNoMissing:st.qcMissing.length===0,
       approveAll:()=>this.qcSet(st.qcPending.map(x=>x.id),true),
       qcPendingRows:st.qcPending.map(x=>{const v=x.kind==='video'||isVideoUrl(x.url);return{url:x.url,bg:v?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':`url("${x.url}")`,label:v?'▶ Video':'',meta:`${PLAT_NAME[x.platform]||x.platform} ${x.item_id} · ${ago(new Date(x.created_at).getTime())} ago`,approve:()=>this.qcSet([x.id],true),reject:()=>this.qcSet([x.id],false)};}),
