@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script>(function(){var m=location.pathname.match(/^(.*?\/fsfinds-site\/)/);var b=m?m[1]:'/';window.FS_BASE=b;document.write('<base href="'+b+'">');})();</script>
+<script src="support.js"></script>
 </head>
 <body>
 <x-dc>
@@ -48,7 +49,7 @@ select option{background:#151518;color:#F5F4F2}
         <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:12px;border:none;background:{{ n.bg }};color:{{ n.fg }};padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:background .2s,color .2s" style-hover="color:#F5F4F2"><iconify-icon icon="{{ n.icon }}" style="font-size:19px"></iconify-icon><span style="flex:1">{{ n.label }}</span><span style="font-size:11px;color:#6E6D73">{{ n.count }}</span></button>
       </sc-for>
       <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
-        <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid #232327;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrow-square-out" style="font-size:17px"></iconify-icon>View site</a>
+        <a href="./" target="_blank" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid #232327;font-size:13px;font-weight:600;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrow-square-out" style="font-size:17px"></iconify-icon>View site</a>
         <button onClick="{{ logout }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:none;background:none;color:#A1A0A6;font-size:13px;font-weight:600;cursor:pointer;text-align:left" style-hover="color:#FF5A64"><iconify-icon icon="ph:sign-out" style="font-size:17px"></iconify-icon>Log out</button>
       </div>
     </aside>
@@ -204,6 +205,44 @@ select option{background:#151518;color:#F5F4F2}
   </div>
 </sc-if>
 
+<sc-if value="{{ isQc }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:16px;animation:rise .35s ease both">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px">Waiting for review · {{ qcPendingCount }}</span>
+      <div style="display:flex;gap:8px"><button onClick="{{ approveAll }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3DDC84"><iconify-icon icon="ph:checks"></iconify-icon>Approve all</button><button onClick="{{ loadQc }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrows-clockwise"></iconify-icon>Refresh</button></div>
+    </div>
+    <sc-if value="{{ qcNoPending }}" hint-placeholder-val="{{ true }}"><div style="background:#151518;border:1px solid #232327;border-radius:18px;border-style:dashed;padding:28px;text-align:center;font-size:14px;color:#A1A0A6">No community uploads waiting.</div></sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px">
+      <sc-for list="{{ qcPendingRows }}" as="q" hint-placeholder-count="0">
+        <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:8px">
+          <a href="{{ q.url }}" target="_blank" style="aspect-ratio:1;border-radius:12px;background:{{ q.bg }};background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;text-decoration:none">{{ q.label }}</a>
+          <span style="font-size:12px;color:#A1A0A6">{{ q.meta }}</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button onClick="{{ q.approve }}" style="border:none;background:#E5202F;color:#fff;padding:9px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">Approve</button><button onClick="{{ q.reject }}" style="border:1px solid #2A2A30;background:#0B0B0D;color:#A1A0A6;padding:9px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer" style-hover="color:#FF5A64">Reject</button></div>
+        </div>
+      </sc-for>
+    </div>
+    <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px;margin-top:8px">Searched, no QC yet</span>
+    <div style="background:#151518;border:1px solid #232327;border-radius:18px;overflow:hidden">
+      <sc-for list="{{ qcMissingRows }}" as="m" hint-placeholder-count="0">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #1C1C20;flex-wrap:wrap">
+          <a href="{{ m.url }}" target="_blank" style="flex:1;min-width:180px;font-weight:600;font-size:14px;color:#F5F4F2;text-decoration:none" style-hover="color:#FF5A64">{{ m.label }}</a>
+          <span style="font-size:12px;color:#A1A0A6">{{ m.meta }}</span>
+          <button onClick="{{ m.add }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;padding:8px 12px" style-hover="border-color:#E5202F"><iconify-icon icon="ph:plus"></iconify-icon>Add as find</button>
+        </div>
+      </sc-for>
+      <sc-if value="{{ qcNoMissing }}" hint-placeholder-val="{{ true }}"><div style="padding:28px;text-align:center;font-size:14px;color:#A1A0A6">Searches without QC show up here.</div></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showPublish }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:14px;background:#151518;border:1px solid #2A2A30;border-radius:16px;padding:10px 10px 10px 16px;box-shadow:0 20px 50px -15px #000;max-width:calc(100vw - 32px)">
+    <span style="width:8px;height:8px;border-radius:50%;background:#FFB020;flex:none"></span>
+    <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ publishText }}</span>
+    <button onClick="{{ publish }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:10px 14px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;flex:none;opacity:{{ publishOpacity }}" style-hover="background:#FF3B47"><iconify-icon icon="ph:github-logo" style="font-size:16px"></iconify-icon>{{ publishLabel }}</button>
+  </div>
+</sc-if>
+
 <sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}">
   <div style="display:flex;flex-direction:column;gap:14px;animation:rise .35s ease both">
     <sc-if value="{{ usersOff }}" hint-placeholder-val="{{ false }}">
@@ -308,8 +347,10 @@ select option{background:#151518;color:#F5F4F2}
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Weight (kg)<input type="number" step="0.01" value="{{ ef.kg }}" onChange="{{ efSet.kg }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           </div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Main image URL<input value="{{ ef.image }}" onChange="{{ efSet.image }}" placeholder="https://…/photo.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
+          <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed #3A3A40;background:#0B0B0D;color:#F5F4F2;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:upload-simple" style="font-size:16px"></iconify-icon>Upload main photo to GitHub<input type="file" accept="image/*" onChange="{{ efUploadMain }}" style="display:none"></label>
           <sc-if value="{{ efHasImage }}" hint-placeholder-val="{{ false }}"><div style="width:120px;aspect-ratio:1;border-radius:14px;border:1px solid #2A2A30;background:{{ efImageBg }};background-size:cover;background-position:center"></div></sc-if>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo URLs (one per line) · {{ efQcCount }}<textarea value="{{ ef.qcText }}" onChange="{{ efSet.qcText }}" rows="5" placeholder="https://…/qc1.jpg&#10;https://…/qc2.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea></label>
+          <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed #3A3A40;background:#0B0B0D;color:#F5F4F2;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:images" style="font-size:16px"></iconify-icon>Upload QC photos / videos to GitHub<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ efUploadQc }}" style="display:none"></label>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px"><sc-for list="{{ efQcThumbs }}" as="q"><div style="aspect-ratio:1;border-radius:10px;background:{{ q.bg }};background-size:cover;background-position:center;border:1px solid #2A2A30"></div></sc-for></div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo count (if you don't have the URLs yet)<input type="number" value="{{ ef.qc }}" onChange="{{ efSet.qc }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <button onClick="{{ efToggleFeatured }}" style="display:flex;align-items:center;justify-content:space-between;border:1px solid #2A2A30;background:#0B0B0D;color:#F5F4F2;padding:12px 14px;border-radius:12px;font-size:14px;cursor:pointer"><span>Featured on the home page</span><span style="width:38px;height:22px;border-radius:11px;background:{{ efFeatTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ efFeatKnob }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s"></span></span></button>
@@ -360,6 +401,14 @@ select option{background:#151518;color:#F5F4F2}
 const CATS=[['shoes','Shoes'],['tops','Tops'],['hoodies','Hoodies'],['pants','Pants'],['outerwear','Outerwear'],['accessories','Accessories']];
 const CAT_ICONS={shoes:'ph:sneaker-move-duotone',tops:'ph:t-shirt-duotone',hoodies:'ph:hoodie-duotone',pants:'ph:pants-duotone',outerwear:'ph:coat-hanger-duotone',accessories:'ph:handbag-duotone'};
 let SB=null;function sbClient(url,key){if(!SB&&url&&key&&window.supabase){try{SB=window.supabase.createClient(url,key);}catch(e){}}return SB;}
+function fsFileB64(file,max){return new Promise((res,rej)=>{const isImg=/^image\/(jpeg|png|webp)$/.test(file.type);const lim=/^video\//.test(file.type)?15e6:10e6;
+  const rd=new FileReader();rd.onerror=()=>rej(new Error('Could not read file'));
+  if(!isImg){if(file.size>lim)return rej(new Error(file.name+' is too large (max '+(lim/1e6)+' MB)'));rd.onload=()=>res({name:file.name,b64:String(rd.result).split(',')[1]});rd.readAsDataURL(file);return;}
+  rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,(max||1600)/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+    const u=cv.toDataURL('image/webp',.86),webp=u.startsWith('data:image/webp');res({name:file.name.replace(/\.[^.]+$/,'')+(webp?'.webp':'.png'),b64:(webp?u:cv.toDataURL('image/png')).split(',')[1]});};im.onerror=()=>rej(new Error('Invalid image'));im.src=rd.result;};rd.readAsDataURL(file);});}
+async function fsInvoke(c,body){const {data,error}=await c.functions.invoke('github-media',{body});if(error){let m=error.message;try{const j=await error.context.json();m=j.error||m;}catch(e){}throw new Error(m);}if(data&&data.error)throw new Error(data.error);return data;}
+const isVideoUrl=u=>/\.(mp4|webm|mov)(\?|$)/i.test(u||'');
+const PLAT_NAME={weidian:'Weidian',taobao:'Taobao','1688':'1688'};
 const STARTER_SELLERS=[
 {id:'northline',name:'Northline Studio',badge:'Top rated',tag:'Heavyweight basics & fleece',platform:'Weidian',rating:'4.9',ship:'1–2 days',since:'2023',code:'NS',shop:'1652189023',bio:'Cotton tees and fleece in 400–500 gsm. Consistent sizing and quick restocks on core colours.'},
 {id:'kiln',name:'Kiln Footwear',badge:'Shoes',tag:'Runners, court & skate shoes',platform:'Weidian',rating:'4.8',ship:'2–4 days',since:'2022',code:'KF',shop:'1713002291',bio:'Footwear specialist. Sends extra measurement photos on request and ships with double boxes.'},
@@ -390,22 +439,36 @@ const EV_META={visit:['Visit','ph:globe-hemisphere-west','#1C1C20','#C9C8CC'],vi
 
 class Component extends DCLogic {
   state={authed:false,checking:true,email:'',pw:'',pwError:false,loginErr:'',busy:false,section:'dash',range:30,sample:null,w:window.innerWidth,
-    db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null};
+    db:this.loadDb(),events:this.loadEvents(),users:[],usersLoading:false,usersErr:'',usersLoaded:false,uq:'',fq:'',fSeller:'all',fCat:'all',drawer:null,ef:null,es:null,formError:'',confirm:null,toast:'',toastOn:false,settingsDraft:null,dirty:localStorage.getItem('fsf_dirty')==='1',uploading:'',publishing:false,qcPending:[],qcMissing:[]};
   loadDb(){try{const d=JSON.parse(localStorage.getItem('fsf_db')||'null');if(d&&d.sellers)return{settings:{},...d};}catch(e){}return{sellers:STARTER_SELLERS,products:STARTER_PRODUCTS,settings:{}};}
   loadEvents(){try{return JSON.parse(localStorage.getItem('fsf_events')||'[]');}catch(e){return[];}}
-  componentDidMount(){this.initAuth();this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
+  componentDidMount(){this.initAuth();
+    if(localStorage.getItem('fsf_dirty')!=='1')fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){const db={...this.state.db,sellers:j.sellers||[],products:j.products||[],settings:{...this.state.db.settings,...(j.settings||{})}};localStorage.setItem('fsf_db',JSON.stringify(db));this.setState({db});}}).catch(()=>{});this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
     this.onStorage=e=>{if(e.key==='fsf_events')this.setState({events:this.loadEvents()});};window.addEventListener('storage',this.onStorage);
     this.poll=setInterval(()=>this.setState({events:this.loadEvents()}),15000);
     this.onKey=e=>{if(e.key==='Escape')this.setState({drawer:null,confirm:null});};window.addEventListener('keydown',this.onKey);}
   componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('storage',this.onStorage);window.removeEventListener('keydown',this.onKey);clearInterval(this.poll);clearTimeout(this.tt);}
-  saveDb(db,msg){localStorage.setItem('fsf_db',JSON.stringify(db));this.setState({db});if(msg)this.showToast(msg);}
+  saveDb(db,msg){localStorage.setItem('fsf_db',JSON.stringify(db));localStorage.setItem('fsf_dirty','1');this.setState({db,dirty:true});if(msg)this.showToast(msg);}
+  async uploadMedia(file,folder,max){const c=sbClient(this.sbUrl(),this.sbKey());if(!c){this.showToast('Supabase not connected');return null;}
+    this.setState({uploading:'Uploading '+file.name+'…'});
+    try{const d=await fsFileB64(file,max||1600);const res=await fsInvoke(c,{action:'upload',name:d.name,data:d.b64,folder});this.setState({uploading:''});return res.url;}
+    catch(e){this.setState({uploading:''});this.showToast('Upload failed: '+e.message);return null;}}
+  async uploadMany(files,folder){const out=[];for(const f of files){const u=await this.uploadMedia(f,folder);if(u)out.push(u);}return out;}
+  async publish(){if(this.state.publishing)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return this.showToast('Supabase not connected');
+    this.setState({publishing:true});const db=this.state.db;const settings={...db.settings};delete settings.adminPassword;
+    try{await fsInvoke(c,{action:'publish',catalog:{version:Date.now(),sellers:db.sellers,products:db.products,settings}});localStorage.removeItem('fsf_dirty');this.setState({dirty:false,publishing:false});this.showToast('Published. Live in about a minute.');}
+    catch(e){this.setState({publishing:false});this.showToast('Publish failed: '+e.message);}}
+  async loadQc(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;
+    try{const [p,m]=await Promise.all([c.from('qc_photos').select('*').eq('status','pending').order('created_at',{ascending:false}).limit(200),c.from('qc_searches').select('*').eq('found',false).order('searches',{ascending:false}).limit(50)]);this.setState({qcPending:p.data||[],qcMissing:m.data||[]});}catch(e){}}
+  async qcSet(ids,approve){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const q=c.from('qc_photos');const {error}=approve?await q.update({status:'approved'}).in('id',ids):await q.delete().in('id',ids);
+    if(error)return this.showToast(error.message);this.showToast(approve?'Approved':'Rejected');this.loadQc();}
   showToast(m){clearTimeout(this.tt);this.setState({toast:m,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
-  sbUrl(){return this.props.supabaseUrl||'';}
-  sbKey(){return this.props.supabaseAnonKey||'';}
-  isAdmin(u){if(!u)return false;const list=(this.props.adminEmails||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return list.includes((u.email||'').toLowerCase())||(u.app_metadata&&u.app_metadata.role==='admin');}
+  sbUrl(){return this.props.supabaseUrl||'https://zpylgnbppleajzngxgxb.supabase.co';}
+  sbKey(){return this.props.supabaseAnonKey||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweWxnbmJwcGxlYWp6bmd4Z3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjk0MTQsImV4cCI6MjEwNzkwNTQxNH0.EI68QGfbglxM7Upa_YxRfk9k43024kthSX7q1TqfUwo';}
+  isAdmin(u){if(!u)return false;const list=(this.props.adminEmails||'flavianobusiness@gmail.com').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return list.includes((u.email||'').toLowerCase())||(u.app_metadata&&u.app_metadata.role==='admin');}
   initAuth(n=0){if(!this.sbUrl()){this.setState({checking:false,authed:sessionStorage.getItem('fsf_admin')==='1'});return;}
     const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);else this.setState({checking:false});return;}
-    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok)this.loadUsers();});}
+    c.auth.getSession().then(({data})=>{const u=data&&data.session&&data.session.user;const ok=this.isAdmin(u);this.setState({checking:false,authed:ok});if(ok){this.loadUsers();this.loadQc();}});}
   async loadUsers(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;this.setState({usersLoading:true,usersErr:''});
     try{const [p,f]=await Promise.all([c.from('profiles').select('*').order('created_at',{ascending:false}).limit(1000),c.from('favorites').select('user_id,items,sellers').limit(1000)]);
       if(p.error)throw p.error;const fav={};((f&&f.data)||[]).forEach(r=>{fav[r.user_id]=r;});
@@ -419,7 +482,7 @@ class Component extends DCLogic {
     const {data,error}=await c.auth.signInWithPassword({email:st.email.trim(),password:st.pw});
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
-    this.setState({busy:false,authed:true,pw:''});this.loadUsers();}
+    this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();}
   openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:''},formError:''});}
   saveDrawer(){const st=this.state,db={...st.db};
@@ -479,19 +542,27 @@ class Component extends DCLogic {
     const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
     const esSet={};['name','code','tag','badge','platform','shop','rating','ship','since','bio'].forEach(k=>{esSet[k]=e=>{const v=e.target.value;this.setState(S=>({es:{...S.es,[k]:v},formError:''}));};});
     const qcUrls=(ef.qcText||'').split(/\s+/).filter(s=>/^https?:\/\//.test(s));
+    const efFolder='media/finds/'+((ef.itemId||(parseLink(ef.link||'')||{}).id||'misc')+'').replace(/[^a-z0-9]/gi,'');
+    const efUploadMain=e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;this.uploadMedia(f,efFolder).then(u=>u&&this.setState(S=>({ef:{...S.ef,image:u}})));};
+    const efUploadQc=e=>{const fs=[...(e.target.files||[])];e.target.value='';if(!fs.length)return;this.uploadMany(fs,efFolder+'/qc').then(us=>us.length&&this.setState(S=>({ef:{...S.ef,qcText:[(S.ef.qcText||'').trim(),...us].filter(Boolean).join('\n')}})));};
     // settings
     const sd=st.settingsDraft||{agentName:db.settings.agentName||'CSSBuy',promoCode:db.settings.promoCode||'FSFINDS',signupLink:db.settings.signupLink||'https://cssb.uy/24Fo',adminPassword:db.settings.adminPassword||'',showCouponPopup:db.settings.showCouponPopup??true};
     const setSD=(k,v)=>this.setState(S=>({settingsDraft:{...(S.settingsDraft||sd),[k]:v}}));
     const settingFields=[['agentName','Agent name','text'],['promoCode','Promo code','text'],['signupLink','Sign-up / affiliate link','text']].map(([k,l,t])=>({label:l,type:t,value:sd[k],onChange:e=>setSD(k,e.target.value)}));
     const sec=st.section;
-    const navItems=[['dash','Dashboard','ph:chart-line-up',''],['finds','Finds','ph:package',db.products.length],['sellers','Sellers','ph:storefront',db.sellers.length],['users','Members','ph:users-three',st.users.length||''],['cats','Categories','ph:squares-four',''],['settings','Settings','ph:gear-six','']].map(([id,l,ic,c])=>({label:l,icon:ic,count:String(c),bg:sec===id?'rgba(229,32,47,.14)':'transparent',fg:sec===id?'#F5F4F2':'#A1A0A6',go:()=>this.setState({section:id})}));
-    const titles={users:['Members','People who registered on the site'],cats:['Categories','Photos shown on the home page'],dash:['Dashboard','How visitors use FSFINDS'],finds:['Finds',`${db.products.length} finds in the catalog`],sellers:['Sellers',`${db.sellers.length} partner sellers`],settings:['Settings','Affiliate links, password and backups']};
+    const navItems=[['dash','Dashboard','ph:chart-line-up',''],['finds','Finds','ph:package',db.products.length],['sellers','Sellers','ph:storefront',db.sellers.length],['users','Members','ph:users-three',st.users.length||''],['qc','QC photos','ph:camera',st.qcPending.length||''],['cats','Categories','ph:squares-four',''],['settings','Settings','ph:gear-six','']].map(([id,l,ic,c])=>({label:l,icon:ic,count:String(c),bg:sec===id?'rgba(229,32,47,.14)':'transparent',fg:sec===id?'#F5F4F2':'#A1A0A6',go:()=>this.setState({section:id})}));
+    const titles={qc:['QC photos','Community uploads and items people searched for'],users:['Members','People who registered on the site'],cats:['Categories','Photos shown on the home page'],dash:['Dashboard','How visitors use FSFINDS'],finds:['Finds',`${db.products.length} finds in the catalog`],sellers:['Sellers',`${db.sellers.length} partner sellers`],settings:['Settings','Affiliate links, password and backups']};
     const ranges=[[7,'7d'],[30,'30d'],[90,'90d']].map(([v,l])=>({label:l,bg:R===v?'#E5202F':'transparent',fg:R===v?'#fff':'#A1A0A6',select:()=>this.setState({range:v})}));
     return{
       locked:!st.authed&&!st.checking,unlocked:st.authed,email:st.email,onEmail:e=>this.setState({email:e.target.value,pwError:false}),loginError:st.loginErr||'Wrong password.',loginCta:st.busy?'Signing in…':'Sign in',
       loginHint:this.sbUrl()?'Use the admin email and password you created in Supabase.':'Supabase is not connected yet. Local preview password: fsfinds',pw:st.pw,onPw:e=>this.setState({pw:e.target.value,pwError:false}),pwKey:e=>{if(e.key==='Enter')this.login();},login:()=>this.login(),pwError:st.pwError,pwBorder:st.pwError?'#E5202F':'#2A2A30',
       logout:()=>{sessionStorage.removeItem('fsf_admin');if(SB)SB.auth.signOut();this.setState({authed:false});},
-      mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',
+      mobile,desktop:!mobile,navItems,pageTitle:titles[sec][0],pageSub:titles[sec][1],isDash:sec==='dash',isFinds:sec==='finds',isSellers:sec==='sellers',isSettings:sec==='settings',isCats:sec==='cats',isUsers:sec==='users',isQc:sec==='qc',
+      showPublish:st.authed&&(st.dirty||!!st.uploading),publishText:st.uploading||'Unpublished changes',publishLabel:st.publishing?'Publishing…':'Publish to GitHub',publishOpacity:st.publishing||st.uploading?'.6':'1',publish:()=>this.publish(),uploadingNow:!!st.uploading,
+      loadQc:()=>this.loadQc(),qcPendingCount:st.qcPending.length,qcNoPending:st.qcPending.length===0,qcNoMissing:st.qcMissing.length===0,
+      approveAll:()=>this.qcSet(st.qcPending.map(x=>x.id),true),
+      qcPendingRows:st.qcPending.map(x=>{const v=x.kind==='video'||isVideoUrl(x.url);return{url:x.url,bg:v?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':`url("${x.url}")`,label:v?'▶ Video':'',meta:`${PLAT_NAME[x.platform]||x.platform} ${x.item_id} · ${ago(new Date(x.created_at).getTime())} ago`,approve:()=>this.qcSet([x.id],true),reject:()=>this.qcSet([x.id],false)};}),
+      qcMissingRows:st.qcMissing.map(m=>{const pl=PLAT_NAME[m.platform]||m.platform;return{label:`${pl} ${m.item_id}`,url:srcUrl(pl,m.item_id),meta:`${m.searches} search${m.searches===1?'':'es'} · ${ago(new Date(m.last_at).getTime())} ago`,add:()=>{this.openFind(null);this.setState(S=>({section:'finds',ef:{...S.ef,link:srcUrl(pl,m.item_id)}}));}};}),
       ...(()=>{const on=!!this.sbUrl(),uq=st.uq.trim().toLowerCase(),wk=Date.now()-7*864e5,fdt=t=>t?new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
         const list=st.users.filter(u=>!uq||((u.email||'')+' '+(u.country||'')).toLowerCase().includes(uq));
         return{usersOn:on,usersOff:!on,uq:st.uq,onUq:e=>this.setState({uq:e.target.value}),loadUsers:()=>this.loadUsers(),usersRefreshLabel:st.usersLoading?'Loading…':'Refresh',usersErr:st.usersErr,
@@ -504,7 +575,7 @@ class Component extends DCLogic {
       catCards:CATS.map(([id,label])=>{const img=(db.settings.catImages||{})[id]||'';const setImg=v=>{const ci={...(db.settings.catImages||{})};if(v)ci[id]=v;else delete ci[id];this.saveDb({...db,settings:{...db.settings,catImages:ci}},v?'Photo saved':'Photo removed');};
         return{label,icon:CAT_ICONS[id],img,imgBg:img?`url("${img}")`:'none',hasImg:!!img,noImg:!img,count:db.products.filter(p=>p.cat===id).length,tileBg:img?'radial-gradient(circle at 50% 42%,#FFFFFF,#E4E2DF 78%)':'radial-gradient(circle at 50% 55%,rgba(229,32,47,.22),#1C1C20 68%)',
           remove:()=>setImg(''),setUrl:()=>{const u=prompt('Image URL for '+label,img||'https://');if(u&&/^https?:\/\//.test(u))setImg(u.trim());},
-          upload:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,480/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);try{setImg(cv.toDataURL('image/png'));}catch(err){this.showToast('Image too large');}};im.src=r.result;};r.readAsDataURL(f);}};}),
+          upload:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;this.uploadMedia(f,'media/categories',900).then(u=>u&&setImg(u));}};}),
       showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),newSeller:()=>this.openSeller(null),
       ranges,sampleOn,toggleSample:()=>this.setState({sample:!sampleOn}),sampleTrack:sampleOn?'#E5202F':'#3A3A40',sampleKnob:sampleOn?'14px':'2px',
       sampleNote:`Showing sample data mixed with ${real.length} real events from this browser. Turn it off to see only real activity.`,
@@ -514,7 +585,7 @@ class Component extends DCLogic {
       sellerOpts:db.sellers.map(s=>({id:s.id,name:s.name})),catOpts:CATS.map(([id,label])=>({id,label})),findRows,noFinds:findRows.length===0,sellerCards,
       drawerOpen:!!st.drawer,drawerTitle:st.drawer==='find'?(ef.id?'Edit find':'New find'):(es.id?'Edit seller':'New seller'),editingFind:st.drawer==='find',editingSeller:st.drawer==='seller',
       closeDrawer:()=>this.setState({drawer:null}),saveDrawer:()=>this.saveDrawer(),stop:e=>e.stopPropagation(),formError:st.formError,
-      ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,
+      ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,efUploadMain,efUploadQc,
       efHasImage:!!(ef.image&&/^https?:/.test(ef.image)),efImageBg:`url("${ef.image}")`,efQcCount:qcUrls.length+' added',efQcThumbs:qcUrls.slice(0,12).map(u=>({bg:`url("${u}")`})),
       efToggleFeatured:()=>this.setState(S=>({ef:{...S.ef,featured:!S.ef.featured}})),efFeatTrack:ef.featured?'#E5202F':'#3A3A40',efFeatKnob:ef.featured?'19px':'3px',
       confirmOpen:!!st.confirm,confirmTitle:st.confirm?st.confirm.title:'',confirmText:st.confirm?st.confirm.text:'',cancelConfirm:()=>this.setState({confirm:null}),doConfirm:()=>{st.confirm&&st.confirm.run();this.setState({confirm:null});},

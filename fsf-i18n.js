@@ -73,7 +73,7 @@ const D={
 'How are the partner sellers chosen?':'Como os vendedores parceiros são escolhidos?','Each seller listed here has been ordered from directly, with consistent QC results and reliable restocks.':'Já comprei diretamente de cada vendedor listado, com QC consistente e reposição confiável.',
 'What does the coupon code do?':'O que o código de cupom faz?','Do I pay FSFINDS anything?':'Eu pago algo para a FSFINDS?',
 'Saved to your list':'Salvo na sua lista','Removed from saved':'Removido dos salvos','Seller saved':'Vendedor salvo','Seller removed':'Vendedor removido','Code copied':'Código copiado','Link copied':'Link copiado','Copied':'Copiado','Signed out':'Você saiu','Account created':'Conta criada','Tracking number copied':'Código de rastreio copiado',
-'Esc':'Esc','Search by name or seller':'Buscar por nome ou vendedor','Save seller':'Salvar vendedor','Remove':'Remover','Edit':'Editar'
+'Esc':'Esc','Got QC for this item?':'Tem QC deste item?','Share your warehouse photos or videos. They go live after review.':'Compartilhe suas fotos ou vídeos do armazém. Eles entram no ar depois da revisão.','Sign in to share':'Entre para compartilhar','Upload photos':'Enviar fotos','▶ Video':'▶ Vídeo','Search by name or seller':'Buscar por nome ou vendedor','Save seller':'Salvar vendedor','Remove':'Remover','Edit':'Editar'
 };
 const R=[
 [/^(\d+\+?) verified finds listed$/,'$1 finds verificados'],[/^Search (\d+) finds and (\d+) sellers…$/,'Buscar $1 finds e $2 vendedores…'],

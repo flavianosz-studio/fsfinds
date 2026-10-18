@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/((?!assets/|support\\.js|fsf-i18n\\.js|ProductCardV4\\.dc\\.html|admin\\.html).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

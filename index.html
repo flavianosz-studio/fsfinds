@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script>(function(){var m=location.pathname.match(/^(.*?\/fsfinds-site\/)/);var b=m?m[1]:'/';window.FS_BASE=b;document.write('<base href="'+b+'">');})();</script>
+<script src="support.js"></script>
 </head>
 <body>
 <x-dc>
@@ -382,6 +383,12 @@ input[type=range]{accent-color:#E5202F}
             <sc-if value="{{ qc.empty }}" hint-placeholder-val="{{ false }}">
               <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-weight:700">No QC photos for this item yet</span><span style="font-size:13px;color:#A1A0A6">Order it on {{ agentName }} to get your own warehouse photos, or check the community links below.</span></div>
             </sc-if>
+            <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <iconify-icon icon="ph:camera-plus" style="font-size:24px;color:#FF5A64;flex:none"></iconify-icon>
+              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:14px">Got QC for this item?</span><span style="font-size:12px;color:#A1A0A6;line-height:1.5">Share your warehouse photos or videos. They go live after review.</span></div>
+              <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><label style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47"><iconify-icon icon="ph:upload-simple"></iconify-icon>{{ qcUpLabel }}<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ qcUpload }}" style="display:none"></label></sc-if>
+              <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F">Sign in to share</button></sc-if>
+            </div>
             <span style="font-size:12px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Search elsewhere</span>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
               <sc-for list="{{ qc.sources }}" as="src" hint-placeholder-count="4"><a href="{{ src.url }}" target="_blank" style="background:#0B0B0D;border:1px solid #2A2A30;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px);color:#F5F4F2"><span style="font-weight:700;font-size:14px">{{ src.name }} ↗</span><span style="font-size:12px;color:#A1A0A6">{{ src.desc }}</span></a></sc-for>
@@ -630,16 +637,39 @@ const RAW=[
 const DEFAULT_PRODUCTS=RAW.map((r,i)=>{const s=DEFAULT_SELLERS.find(x=>x.id===r[2]);const id=s.platform==='Taobao'?String(700000000000+i*913577):s.platform==='1688'?String(650000000000+i*771233):String(7400000000+i*3917311);return{id:'p'+i,name:r[0],cat:r[1],seller:r[2],price:r[3],qc:r[4],kg:r[5],platform:s.platform,itemId:id,image:null,qcPhotos:[]};});
 const FSDB=(()=>{try{return JSON.parse(localStorage.getItem('fsf_db')||'null');}catch(e){return null;}})();
 if(!FSDB){try{localStorage.setItem('fsf_db',JSON.stringify({sellers:DEFAULT_SELLERS,products:DEFAULT_PRODUCTS,settings:{}}));}catch(e){}}
-const SELLERS=(FSDB&&FSDB.sellers&&FSDB.sellers.length)?FSDB.sellers:DEFAULT_SELLERS;
-const PRODUCTS=((FSDB&&FSDB.products)?FSDB.products:DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>SELLERS.some(s=>s.id===p.seller));
-const SETTINGS=(FSDB&&FSDB.settings)||{};
+let SELLERS=(FSDB&&FSDB.sellers&&FSDB.sellers.length)?FSDB.sellers:DEFAULT_SELLERS;
+let PRODUCTS=((FSDB&&FSDB.products)?FSDB.products:DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>SELLERS.some(s=>s.id===p.seller));
+let SETTINGS=(FSDB&&FSDB.settings)||{};
+const SB_URL='https://zpylgnbppleajzngxgxb.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweWxnbmJwcGxlYWp6bmd4Z3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjk0MTQsImV4cCI6MjEwNzkwNTQxNH0.EI68QGfbglxM7Upa_YxRfk9k43024kthSX7q1TqfUwo';
+const TOOL_SLUG={track:'tracker',qc:'qc',size:'size',convert:'converter'},SLUG_TOOL={tracker:'track',qc:'qc',size:'size',converter:'convert'};
+function fsBase(){return window.FS_BASE||'/';}
+function fsParse(){let p=location.pathname,b=fsBase();if(p.startsWith(b))p=p.slice(b.length);p=p.replace(/^\/+|\/+$/g,'').replace(/^index\.html$/,'');const seg=p.split('/').filter(Boolean).map(decodeURIComponent);const q=new URLSearchParams(location.search);
+  if(!seg.length)return{page:'home'};
+  switch(seg[0]){case 'shop':return{page:'shop',cat:q.get('cat')||'all',query:q.get('q')||''};
+    case 'sellers':return seg[1]?{page:'seller',sellerId:seg[1]}:{page:'sellers'};
+    case 'product':return seg[1]?{page:'product',productId:seg[1]}:{page:'shop'};
+    case 'tools':return{page:'tools',tool:SLUG_TOOL[seg[1]]||'track'};
+    case 'account':case 'saved':return{page:'saved'};
+    default:return{page:'home'};}}
+function fsPath(s){const e=encodeURIComponent;switch(s.page){case 'shop':{const q=new URLSearchParams();if(s.cat&&s.cat!=='all')q.set('cat',s.cat);if(s.query)q.set('q',s.query);const qs=q.toString();return 'shop'+(qs?'?'+qs:'');}
+  case 'sellers':return 'sellers';case 'seller':return 'sellers/'+e(s.sellerId);case 'product':return 'product/'+e(s.productId);
+  case 'tools':return 'tools/'+(TOOL_SLUG[s.tool]||'tracker');case 'saved':return 'account';default:return '';}}
 let SB=null;function sbClient(url,key){if(!SB&&url&&key&&window.supabase){try{SB=window.supabase.createClient(url,key);}catch(e){}}return SB;}
+function fsFileB64(file,max){return new Promise((res,rej)=>{const isImg=/^image\/(jpeg|png|webp)$/.test(file.type);const lim=/^video\//.test(file.type)?15e6:10e6;
+  const rd=new FileReader();rd.onerror=()=>rej(new Error('Could not read file'));
+  if(!isImg){if(file.size>lim)return rej(new Error(file.name+' is too large (max '+(lim/1e6)+' MB)'));rd.onload=()=>res({name:file.name,b64:String(rd.result).split(',')[1]});rd.readAsDataURL(file);return;}
+  rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,(max||1600)/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+    const u=cv.toDataURL('image/webp',.86),webp=u.startsWith('data:image/webp');res({name:file.name.replace(/\.[^.]+$/,'')+(webp?'.webp':'.png'),b64:(webp?u:cv.toDataURL('image/png')).split(',')[1]});};im.onerror=()=>rej(new Error('Invalid image'));im.src=rd.result;};rd.readAsDataURL(file);});}
+async function fsInvoke(c,body){const {data,error}=await c.functions.invoke('github-media',{body});if(error){let m=error.message;try{const j=await error.context.json();m=j.error||m;}catch(e){}throw new Error(m);}if(data&&data.error)throw new Error(data.error);return data;}
+const isVideoUrl=u=>/\.(mp4|webm|mov)(\?|$)/i.test(u||'');
 function fsGeo(){try{return JSON.parse(localStorage.getItem('fsf_geo')||'null');}catch(e){return null;}}
 function fsTrack(type,data){try{const ev=JSON.parse(localStorage.getItem('fsf_events')||'[]');const g=fsGeo()||{};let vid=localStorage.getItem('fsf_vid');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('fsf_vid',vid);}
 let ref='direct';try{if(document.referrer)ref=new URL(document.referrer).hostname.replace(/^www\./,'');}catch(e){}
 ev.push({t:Date.now(),type,vid,cc:g.cc||'',country:g.country||'',dev:innerWidth<760?'mobile':innerWidth<1100?'tablet':'desktop',ref,...(data||{})});
 if(ev.length>8000)ev.splice(0,ev.length-8000);localStorage.setItem('fsf_events',JSON.stringify(ev));}catch(e){}}
-const QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);
+let QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);
+function fsApply(F){SELLERS=(F.sellers&&F.sellers.length)?F.sellers:DEFAULT_SELLERS;PRODUCTS=(F.products||DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>SELLERS.some(s=>s.id===p.seller));SETTINGS=F.settings||{};QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);}
+try{const pub=JSON.parse(localStorage.getItem('fsf_pub')||'null');if(pub&&pub.products)fsApply(pub);}catch(e){}
 const CHARTS={tee:{S:[98,68],M:[103,70],L:[108,72],XL:[113,74],XXL:[118,76]},hoodie:{S:[104,67],M:[110,69],L:[116,71],XL:[122,73],XXL:[128,75]},jacket:{S:[108,68],M:[114,70],L:[120,72],XL:[126,74],XXL:[132,76]}};
 const TARGET={fitted:4,regular:9,oversized:16};
 const PANTS={S:[74,98],M:[78,100],L:[82,102],XL:[86,104],XXL:[90,106]};
@@ -670,19 +700,27 @@ function parseLink(u){
 const sourceUrl=(p,id)=>p==='Taobao'?`https://item.taobao.com/item.htm?id=${id}`:p==='1688'?`https://detail.1688.com/offer/${id}.html`:`https://weidian.com/item.html?itemID=${id}`;
 
 class Component extends DCLogic {
-  state={page:'home',prev:'home',cat:'all',homeCat:'all',query:'',sort:'featured',sellerFilter:'all',sellerId:null,productId:null,tool:'track',
+  state={page:'home',prev:'home',cat:'all',homeCat:'all',query:'',sort:'featured',sellerFilter:'all',sellerId:null,productId:null,tool:'track',...fsParse(),
     favs:JSON.parse(localStorage.getItem('fsf_favs')||'[]'),favSellers:JSON.parse(localStorage.getItem('fsf_fav_sellers')||'[]'),user:null,auth:null,lang:(()=>{try{return localStorage.getItem('fsf_lang')||'en';}catch(e){return 'en';}})(),aEmail:'',aPw:'',aBusy:false,aMsg:'',aErr:'',acctTab:'finds',recent:JSON.parse(localStorage.getItem('fsf_tracks')||'[]'),
     faqOpen:0,popup:false,w:window.innerWidth,scrolled:false,hoverSeller:null,hoverTool:null,toast:'',toastOn:false,count:0,thumb:0,stepsOn:false,
     searchOpen:false,searchQ:'',
     trackInput:'',trackNum:'',trackError:false,qcInput:'',qc:{},convInput:'',conv:[],convBad:'',copied:null,unit:'metric',
     sz:{mode:'tops',gender:'men',height:178,weight:75,build:'regular',garment:'hoodie',fit:'regular',pfit:'regular',foot:27,shoeFit:'tts',width:'regular',sel:null,custom:{}}};
-  sbUrl(){return this.props.supabaseUrl||SETTINGS.supabaseUrl||'';}
-  sbKey(){return this.props.supabaseAnonKey||SETTINGS.supabaseAnonKey||'';}
+  sbUrl(){return this.props.supabaseUrl||SETTINGS.supabaseUrl||SB_URL;}
+  sbKey(){return this.props.supabaseAnonKey||SETTINGS.supabaseAnonKey||SB_KEY;}
+  syncUrl(replace){const path=fsBase()+fsPath(this.state);if(location.pathname+location.search!==path){try{history[replace?'replaceState':'pushState']({},'',path);}catch(e){}}}
+  routeTick(){const s=this.state,k=[s.page,s.sellerId,s.productId,s.tool,s.cat,s.query].join('|');if(k===this._rk)return;const ps=this._rs||{};this._rk=k;this._rs={...s};
+    const replace=!this._first||!!this.popping||(ps.page===s.page&&ps.sellerId===s.sellerId&&ps.productId===s.productId&&ps.tool===s.tool);
+    this._first=true;queueMicrotask(()=>this.applyRoute(replace));}
+  applyRoute(replace){const s=this.state;this.syncUrl(replace);this.popping=false;
+    const titles={home:'FSFINDS · Verified finds from partner sellers',shop:'Shop · FSFINDS',sellers:'Sellers · FSFINDS',tools:'Tools · FSFINDS',saved:'Account · FSFINDS'};
+    let t=titles[s.page];if(s.page==='seller'){const x=SELLERS.find(v=>v.id===s.sellerId);t=(x?x.name:'Seller')+' · FSFINDS';}if(s.page==='product'){const x=PRODUCTS.find(v=>String(v.id)===String(s.productId));t=(x?x.name:'Find')+' · FSFINDS';}
+    if(t&&document.title!==t)document.title=t;}
   initAuth(n=0){const c=sbClient(this.sbUrl(),this.sbKey());if(!c){if(this.sbUrl()&&n<30)this.ta=setTimeout(()=>this.initAuth(n+1),300);return;}
     c.auth.getSession().then(({data})=>this.setUser(data&&data.session?data.session.user:null));this.authSub=c.auth.onAuthStateChange((_e,s)=>this.setUser(s?s.user:null));}
-  setUser(u){const prev=this.state.user;this.setState({user:u});if(u&&(!prev||prev.id!==u.id)){this.pullFavs(u);const g=fsGeo()||{};SB.from('profiles').upsert({id:u.id,email:u.email,last_seen:new Date().toISOString(),country:g.country||null,cc:g.cc||null}).then(()=>{},()=>{});}}
+  setUser(u){const prev=this.state.user;this.setState({user:u});if(u&&(!prev||prev.id!==u.id)){this.pullFavs(u);const g=fsGeo()||{};SB&&SB.from('profiles').upsert({id:u.id,email:u.email,last_seen:new Date().toISOString(),country:g.country||null,cc:g.cc||null}).then(()=>{},()=>{});}}
   setLang(l){this.setState({lang:l});if(window.FSFI18N)window.FSFI18N.set(l);fsTrack('lang',{lang:l});}
-  async pullFavs(u){try{const {data}=await SB.from('favorites').select('items,sellers').eq('user_id',u.id).maybeSingle();
+  async pullFavs(u){if(!SB)return;try{const {data}=await SB.from('favorites').select('items,sellers').eq('user_id',u.id).maybeSingle();
     const items=[...new Set([...((data&&data.items)||[]),...this.state.favs])],sellers=[...new Set([...((data&&data.sellers)||[]),...this.state.favSellers])];
     localStorage.setItem('fsf_favs',JSON.stringify(items));localStorage.setItem('fsf_fav_sellers',JSON.stringify(sellers));this.setState({favs:items,favSellers:sellers});this.pushFavs(items,sellers);}catch(e){}}
   pushFavs(items,sellers){const u=this.state.user;if(!SB||!u)return;SB.from('favorites').upsert({user_id:u.id,items,sellers,updated_at:new Date().toISOString()}).then(()=>{},()=>{});}
@@ -693,13 +731,18 @@ class Component extends DCLogic {
     if(st.auth!=='reset'&&st.aPw.length<6)return this.setState({aErr:'Password needs at least 6 characters.'});
     this.setState({aBusy:true,aErr:'',aMsg:''});
     try{if(st.auth==='signin'){const {error}=await c.auth.signInWithPassword({email,password:st.aPw});if(error)throw error;fsTrack('login');this.setState({auth:null,aPw:''});this.showToast('Welcome back');this.go('saved');}
-      else if(st.auth==='signup'){const {data,error}=await c.auth.signUp({email,password:st.aPw,options:{emailRedirectTo:location.href.split('#')[0]}});if(error)throw error;fsTrack('register');if(data.session){this.setState({auth:null,aPw:''});this.showToast('Account created');this.go('saved');}else this.setState({aMsg:'Check your inbox to confirm your email, then sign in.'});}
-      else{const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});if(error)throw error;this.setState({aMsg:'If that email has an account, a reset link is on its way.'});}}
+      else if(st.auth==='signup'){const {data,error}=await c.auth.signUp({email,password:st.aPw,options:{emailRedirectTo:location.origin+fsBase()+'account'}});if(error)throw error;fsTrack('register');if(data.session){this.setState({auth:null,aPw:''});this.showToast('Account created');this.go('saved');}else this.setState({aMsg:'Check your inbox to confirm your email, then sign in.'});}
+      else{const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:location.origin+fsBase()+'account'});if(error)throw error;this.setState({aMsg:'If that email has an account, a reset link is on its way.'});}}
     catch(e){this.setState({aErr:(e&&e.message)||'Something went wrong. Try again.'});}
     this.setState({aBusy:false});}
   signOut(){if(SB)SB.auth.signOut();this.setState({user:null});this.showToast('Signed out');}
   componentDidMount(){
     this.initAuth();
+    fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){try{localStorage.setItem('fsf_pub',JSON.stringify(j));}catch(e){}fsApply(j);this.forceUpdate();}}).catch(()=>{});
+    this.onPop=()=>{this.popping=true;this.setState({...fsParse(),searchOpen:false});window.scrollTo(0,0);};window.addEventListener('popstate',this.onPop);
+    if(this.state.page==='product'&&!PRODUCTS.some(p=>String(p.id)===String(this.state.productId)))this.setState({page:'shop'});
+    if(this.state.page==='seller'&&!SELLERS.some(s=>s.id===this.state.sellerId))this.setState({page:'sellers'});
+    this.popping=true;this._rk=null;this.routeTick();
     const applyLang=(n=0)=>{if(window.FSFI18N){window.FSFI18N.set(this.state.lang);}else if(n<40)this.tl=setTimeout(()=>applyLang(n+1),150);};this.tl=setTimeout(()=>applyLang(),60);
     this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
     const fallbackGeo=()=>{try{const lang=(navigator.languages&&navigator.languages.find(l=>l.includes('-')))||navigator.language||'';const cc=(lang.split('-')[1]||'').toUpperCase();if(cc){const name=new Intl.DisplayNames(['en'],{type:'region'}).of(cc);localStorage.setItem('fsf_geo',JSON.stringify({cc,country:name}));}}catch(e){}};
@@ -712,7 +755,7 @@ class Component extends DCLogic {
     const t0=performance.now();const tick=t=>{const k=Math.min(1,(t-t0)/1500);this.setState({count:1-Math.pow(1-k,3)});if(k<1)this.raf=requestAnimationFrame(tick);};this.raf=requestAnimationFrame(tick);
     this.t2=setTimeout(()=>this.setState({stepsOn:true}),700);
   }
-  componentWillUnmount(){clearTimeout(this.t);clearTimeout(this.t2);clearTimeout(this.tt);cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('scroll',this.onScroll);window.removeEventListener('keydown',this.onKey);}
+  componentWillUnmount(){window.removeEventListener('popstate',this.onPop);clearTimeout(this.t);clearTimeout(this.t2);clearTimeout(this.tt);cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('scroll',this.onScroll);window.removeEventListener('keydown',this.onKey);}
   openSearch(){this.setState({searchOpen:true});setTimeout(()=>this.searchEl&&this.searchEl.focus(),40);}
   agentName(){return SETTINGS.agentName||this.props.agentName||'CSSBuy';}
   code(){return SETTINGS.promoCode||this.props.promoCode||'FSFINDS';}
@@ -742,6 +785,10 @@ class Component extends DCLogic {
     if(api){try{const res=await fetch(`${api}${api.includes('?')?'&':'?'}platform=${encodeURIComponent(r.platform)}&id=${encodeURIComponent(r.id)}`);if(res.ok)data=await res.json();}catch(e){}}
     const p=PRODUCTS.find(x=>x.itemId===r.id);
     if((!data||!data.photos||!data.photos.length)&&p){const src=p.qcPhotos.length?p.qcPhotos:Array.from({length:p.qc},()=>null);data={title:p.name,price:p.price,image:p.image,photos:src.map((u,i)=>({url:u,set:Math.floor(i/6)}))};}
+    const c=sbClient(this.sbUrl(),this.sbKey());
+    if(c){try{const {data:rows}=await c.from('qc_photos').select('url,kind,batch,created_at,source').eq('platform',r.platform.toLowerCase()).eq('item_id',r.id).eq('status','approved').order('created_at',{ascending:false}).limit(300);
+        if(rows&&rows.length){data=data||{photos:[]};data.photos=[...(data.photos||[]),...rows.map(x=>({url:x.url,set:'b'+x.batch,date:new Date(x.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),source:x.source}))];}}catch(e){}
+      const found=!!(data&&data.photos&&data.photos.some(x=>x.url));c.rpc('log_qc_search',{p:r.platform.toLowerCase(),i:r.id,f:found}).then(()=>{},()=>{});}
     const wait=Math.max(0,500-(Date.now()-t0));await new Promise(res=>setTimeout(res,wait));
     if(this.state.qc.id!==r.id)return;
     this.setState({qc:{ok:true,...r,product:p?p.id:null,data:data||{photos:[]}}});
@@ -756,6 +803,7 @@ class Component extends DCLogic {
   renderVals(){
     const st=this.state,agent=this.agentName(),code=this.code();
     const signupLink=SETTINGS.signupLink||this.props.signupLink||'https://cssb.uy/24Fo';
+    this.routeTick();
     const page=st.page,mobile=st.w<1100,w=st.w;
     const active=p=>page===p||(p==='sellers'&&page==='seller')||(p==='shop'&&page==='product');
     const nav=[['Home','home'],['Shop','shop'],['Sellers','sellers'],['Tools','tools']].map(([label,p])=>{const on=active(p);return{label,bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',go:()=>this.go(p)};});
@@ -812,7 +860,7 @@ class Component extends DCLogic {
       const now=Date.now();
       const sets=Object.keys(groups).map((key,si)=>{const arr=groups[key];const date=arr[0].date||new Date(now-(si*9+2)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
         const label=`QC set ${si+1}`;
-        return{label,meta:`${date} · ${arr.length} photos`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});return{bg:ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:ph.url?'':'QC '+(pi+1),open:()=>this.setState({lb:idx})};})};});
+        return{label,meta:`${date} · ${arr.length} photos`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
       const n=norm.length;
       qc={...qc,match:!!p,title:d.title||(p?p.name:`${qc.platform} item ${qc.id}`),priceLabel:d.price?'$'+(+d.price).toFixed(2):'Price on '+agent,
         thumbBg:d.image?`url("${d.image}")`:'radial-gradient(circle at 50% 45%,#2A2A30,#1C1C20 70%)',buyLink:this.buyLink(qc.platform,qc.id),
@@ -907,6 +955,10 @@ class Component extends DCLogic {
       trackDetected:!!tDet,trackCarrier:tDet?tDet.name:'',trackError:st.trackError,trackOk:!!tn,track17:`https://t.17track.net/en#nums=${tn}`,trackOfficial:tn&&tDet&&tDet.url?tDet.url:'',
       trackFrameH:tn?'560px':'0px',copyTrack:()=>this.copy(tn,'t','Tracking number copied'),copyTrackLabel:st.copied==='t'?'✓ Copied':'Copy number',
       recentTracks:st.recent.map(n=>({num:n,go:()=>this.runTrack(n)})),hasRecentTracks:st.recent.length>0,clearTracks:()=>{localStorage.removeItem('fsf_tracks');this.setState({recent:[]});},
+      qcUpLabel:st.qcUp||'Upload photos',
+      qcUpload:async e=>{const files=[...(e.target.files||[])].slice(0,12);e.target.value='';const q=this.state.qc;if(!files.length||!q.id)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const batch=Date.now();let ok=0;
+        for(let i=0;i<files.length;i++){this.setState({qcUp:`Uploading ${i+1}/${files.length}…`});try{const d=await fsFileB64(files[i],1600);await fsInvoke(c,{action:'upload',name:d.name,data:d.b64,qc:{platform:q.platform.toLowerCase(),item_id:q.id,batch}});ok++;}catch(err){this.showToast(err.message);}}
+        this.setState({qcUp:''});if(ok){this.showToast(`${ok} file${ok>1?'s':''} sent for review`);fsTrack('qc_upload',{item:q.id,n:ok});}},
       qcInput:st.qcInput,onQcInput:e=>this.setState({qcInput:e.target.value}),runQc:()=>this.runQc(),qcKey:this.enter(()=>this.runQc()),qc,qcOk,qcError:!!st.qc.error,qcLoading:!!st.qc.loading,skeletons:Array.from({length:6},(_,i)=>({i})),
       lbOpen:st.lb!=null&&!!flat[st.lb],lb:(()=>{const f=flat[st.lb];if(!f)return{};return{bg:f.url?`url("${f.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#151518 70%)',label:f.url?'':`QC photo ${f.n}`,setLabel:f.setLabel,counter:`${st.lb+1} / ${flat.length}`};})(),
       lbClose:()=>this.setState({lb:null}),lbPrev:()=>this.setState(s=>({lb:(s.lb-1+flat.length)%flat.length})),lbNext:()=>this.setState(s=>({lb:(s.lb+1)%flat.length})),
