@@ -221,6 +221,20 @@ select option{background:#151518;color:#F5F4F2}
 
 <sc-if value="{{ isQc }}" hint-placeholder-val="{{ false }}">
   <div style="display:flex;flex-direction:column;gap:16px;animation:rise .35s ease both">
+    <div style="background:#151518;border:1px solid #232327;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <span style="display:flex;align-items:center;gap:8px;font-family:'Sora',sans-serif;font-weight:700;font-size:16px"><iconify-icon icon="ph:download-simple" style="font-size:20px;color:#FF5A64"></iconify-icon>Import public QC</span>
+      <span style="font-size:13px;color:#A1A0A6;line-height:1.55">Paste the item link and the QC page (Doppel or another QC site). Photos are copied to your GitHub and shown on the QC finder with the source credited. You can also paste image links directly.</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
+        <input value="{{ qiItem }}" onChange="{{ onQiItem }}" placeholder="Item link (Weidian, Taobao, 1688 or agent)" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none" style-focus="border-color:#E5202F">
+        <input value="{{ qiUrl }}" onChange="{{ onQiUrl }}" placeholder="QC page link, e.g. https://doppel.fit/…" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none" style-focus="border-color:#E5202F">
+      </div>
+      <textarea value="{{ qiImgs }}" onChange="{{ onQiImgs }}" rows="3" placeholder="Or paste image links, one per line (optional)" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button onClick="{{ qiRun }}" style="display:flex;align-items:center;gap:8px;border:none;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;opacity:{{ qiOpacity }}" style-hover="background:#FF3B47"><iconify-icon icon="ph:cloud-arrow-down"></iconify-icon>{{ qiLabel }}</button>
+        <sc-if value="{{ qiParsedOk }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:600;background:rgba(61,220,132,.12);color:#3DDC84;padding:5px 10px;border-radius:999px">{{ qiParsed }}</span></sc-if>
+        <sc-if value="{{ qiMsg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:{{ qiMsgColor }}">{{ qiMsg }}</span></sc-if>
+      </div>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
       <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px">Waiting for review · {{ qcPendingCount }}</span>
       <div style="display:flex;gap:8px"><button onClick="{{ approveAll }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3DDC84"><iconify-icon icon="ph:checks"></iconify-icon>Approve all</button><button onClick="{{ loadQc }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#E5202F"><iconify-icon icon="ph:arrows-clockwise"></iconify-icon>Refresh</button></div>
@@ -571,6 +585,12 @@ class Component extends DCLogic {
     catch(e){this.setState({publishing:false});this.showToast('Publish failed: '+e.message);}}
   async loadQc(){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;
     try{const [p,m]=await Promise.all([c.from('qc_photos').select('*').eq('status','pending').order('created_at',{ascending:false}).limit(200),c.from('qc_searches').select('*').eq('found',false).order('searches',{ascending:false}).limit(50)]);this.setState({qcPending:p.data||[],qcMissing:m.data||[]});}catch(e){}}
+  async qcImport(){const st=this.state;if(st.qiBusy)return;const it=parseLink(st.qiItem||'');if(!it)return this.setState({qiMsg:'Paste a valid item link.',qiErr:true});
+    const imgs=(st.qiImgs||'').split(/\s+/).filter(s=>/^https?:\/\//.test(s));const url=(st.qiUrl||'').trim();if(!url&&!imgs.length)return this.setState({qiMsg:'Paste the QC page link or image links.',qiErr:true});
+    const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;this.setState({qiBusy:true,qiMsg:'',qiErr:false});
+    try{const r=await fsInvoke(c,{action:'qc-import',platform:it.platform,item_id:it.id,url:url||undefined,images:imgs});
+      this.setState({qiBusy:false,qiMsg:`${r.saved} of ${r.found} photos imported from ${r.source}.`,qiErr:!r.saved,qiUrl:'',qiImgs:''});this.loadQc();}
+    catch(e){this.setState({qiBusy:false,qiMsg:e.message,qiErr:true});}}
   async qcSet(ids,approve){const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const q=c.from('qc_photos');const {error}=approve?await q.update({status:'approved'}).in('id',ids):await q.delete().in('id',ids);
     if(error)return this.showToast(error.message);this.showToast(approve?'Approved':'Rejected');this.loadQc();}
   showToast(m){clearTimeout(this.tt);this.setState({toast:m,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
@@ -740,7 +760,9 @@ class Component extends DCLogic {
           livePages:grp(x=>pageName(x.page)).slice(0,6).map(([label,n])=>({label,n})),
           liveCountries:grp(x=>x.cc?x.cc+'|'+(x.country||x.cc):'').slice(0,6).map(([k,n])=>{const [cc,name]=k.split('|');return{label:name,n,flag:'flag:'+cc.toLowerCase()+'-4x3'};})};})(),isQc:sec==='qc',
       showPublish:st.authed&&(st.dirty||!!st.uploading),toastBottom:st.authed&&(st.dirty||!!st.uploading)?'96px':'24px',publishText:st.uploading||'Unpublished changes',publishLabel:st.publishing?'Publishing…':'Publish to GitHub',publishOpacity:st.publishing||st.uploading?'.6':'1',publish:()=>this.publish(),uploadingNow:!!st.uploading,
-      loadQc:()=>this.loadQc(),qcPendingCount:st.qcPending.length,qcNoPending:st.qcPending.length===0,qcNoMissing:st.qcMissing.length===0,
+      loadQc:()=>this.loadQc(),qiItem:st.qiItem||'',onQiItem:e=>this.setState({qiItem:e.target.value,qiMsg:''}),qiUrl:st.qiUrl||'',onQiUrl:e=>this.setState({qiUrl:e.target.value,qiMsg:''}),qiImgs:st.qiImgs||'',onQiImgs:e=>this.setState({qiImgs:e.target.value}),
+      qiRun:()=>this.qcImport(),qiLabel:st.qiBusy?'Importing…':'Import QC',qiOpacity:st.qiBusy?'.6':'1',qiMsg:st.qiMsg||'',qiMsgColor:st.qiErr?'#FF5A64':'#3DDC84',
+      ...(()=>{const it=parseLink(st.qiItem||'');return{qiParsedOk:!!it,qiParsed:it?it.platform+' '+it.id:''};})(),qcPendingCount:st.qcPending.length,qcNoPending:st.qcPending.length===0,qcNoMissing:st.qcMissing.length===0,
       approveAll:()=>this.qcSet(st.qcPending.map(x=>x.id),true),
       qcPendingRows:st.qcPending.map(x=>{const v=x.kind==='video'||isVideoUrl(x.url);return{url:x.url,bg:v?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':`url("${x.url}")`,label:v?'▶ Video':'',meta:`${PLAT_NAME[x.platform]||x.platform} ${x.item_id} · ${ago(new Date(x.created_at).getTime())} ago`,approve:()=>this.qcSet([x.id],true),reject:()=>this.qcSet([x.id],false)};}),
       qcMissingRows:st.qcMissing.map(m=>{const pl=PLAT_NAME[m.platform]||m.platform;return{label:`${pl} ${m.item_id}`,url:srcUrl(pl,m.item_id),meta:`${m.searches} search${m.searches===1?'':'es'} · ${ago(new Date(m.last_at).getTime())} ago`,add:()=>{this.openFind(null);this.setState(S=>({section:'finds',ef:{...S.ef,link:srcUrl(pl,m.item_id)}}));}};}),
