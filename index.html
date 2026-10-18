@@ -381,15 +381,6 @@ input[type=range]{accent-color:#E5202F}
                 </div>
               </div>
             </sc-for>
-            <sc-if value="{{ qc.empty }}" hint-placeholder-val="{{ false }}">
-              <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-weight:700">No QC photos for this item yet</span><span style="font-size:13px;color:#A1A0A6">Order it on {{ agentName }} to get your own warehouse photos, or check the community links below.</span></div>
-            </sc-if>
-            <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-              <iconify-icon icon="ph:camera-plus" style="font-size:24px;color:#FF5A64;flex:none"></iconify-icon>
-              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:14px">Got QC for this item?</span><span style="font-size:12px;color:#A1A0A6;line-height:1.5">Share your warehouse photos or videos. They go live after review.</span></div>
-              <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><label style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47"><iconify-icon icon="ph:upload-simple"></iconify-icon>{{ qcUpLabel }}<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ qcUpload }}" style="display:none"></label></sc-if>
-              <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F">Sign in to share</button></sc-if>
-            </div>
             <sc-if value="{{ dpOn }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
@@ -403,6 +394,16 @@ input[type=range]{accent-color:#E5202F}
                 <span style="font-size:11px;color:#6E6D73">QC photos shown from doppel.fit with their permission.</span>
               </div>
             </sc-if>
+            <sc-if value="{{ qcEmptyNoDp }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-weight:700">No QC photos for this item yet</span><span style="font-size:13px;color:#A1A0A6">Order it on {{ agentName }} to get your own warehouse photos, or check the community links below.</span></div>
+            </sc-if>
+            <div style="background:#0B0B0D;border:1px dashed #2A2A30;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <iconify-icon icon="ph:camera-plus" style="font-size:24px;color:#FF5A64;flex:none"></iconify-icon>
+              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:14px">Got QC for this item?</span><span style="font-size:12px;color:#A1A0A6;line-height:1.5">Share your warehouse photos or videos. They go live after review.</span></div>
+              <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><label style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47"><iconify-icon icon="ph:upload-simple"></iconify-icon>{{ qcUpLabel }}<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ qcUpload }}" style="display:none"></label></sc-if>
+              <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F">Sign in to share</button></sc-if>
+            </div>
+            
             <span style="font-size:12px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Search elsewhere</span>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
               <sc-for list="{{ qc.sources }}" as="src" hint-placeholder-count="4"><a href="{{ src.url }}" target="_blank" style="background:#0B0B0D;border:1px solid #2A2A30;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px);color:#F5F4F2"><span style="font-weight:700;font-size:14px">{{ src.name }} ↗</span><span style="font-size:12px;color:#A1A0A6">{{ src.desc }}</span></a></sc-for>
@@ -987,7 +988,7 @@ class Component extends DCLogic {
       trackFrameH:tn?'560px':'0px',copyTrack:()=>this.copy(tn,'t','Tracking number copied'),copyTrackLabel:st.copied==='t'?'✓ Copied':'Copy number',
       recentTracks:st.recent.map(n=>({num:n,go:()=>this.runTrack(n)})),hasRecentTracks:st.recent.length>0,clearTracks:()=>{localStorage.removeItem('fsf_tracks');this.setState({recent:[]});},
       ...(()=>{const t=SETTINGS.doppelUrl||this.props.doppelUrl||'';const q=st.qc;const qp=q&&q.id?PRODUCTS.find(x=>x.itemId===q.id&&x.doppelUrl):null;const own=qp&&/^https:\/\/(www\.)?doppel\.fit\//.test(qp.doppelUrl)?qp.doppelUrl:'';const on=!!(q&&q.ok&&q.id&&(own||t));
-        return{dpOn:on,dpUrl:on?(own||t.replace('{platform}',encodeURIComponent(String(q.platform).toLowerCase())).replace('{id}',encodeURIComponent(q.id))):'about:blank',dpHeight:st.w<700?'560px':'720px'};})(),
+        return{qcEmptyNoDp:!!(st.qc&&st.qc.ok&&!on&&!(st.qc.data&&(st.qc.data.photos||[]).some(x=>x.url))),dpOn:on,dpUrl:on?(own||t.replace('{platform}',encodeURIComponent(String(q.platform).toLowerCase())).replace('{id}',encodeURIComponent(q.id))):'about:blank',dpHeight:st.w<700?'560px':'720px'};})(),
       qcUpLabel:st.qcUp||'Upload photos',
       qcUpload:async e=>{const files=[...(e.target.files||[])].slice(0,12);e.target.value='';const q=this.state.qc;if(!files.length||!q.id)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const batch=Date.now();let ok=0;
         for(let i=0;i<files.length;i++){this.setState({qcUp:`Uploading ${i+1}/${files.length}…`});try{const d=await fsFileB64(files[i],1600);await fsInvoke(c,{action:'upload',name:d.name,data:d.b64,qc:{platform:q.platform.toLowerCase(),item_id:q.id,batch}});ok++;}catch(err){this.showToast(err.message);}}
