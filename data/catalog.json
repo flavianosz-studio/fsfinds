@@ -1,5 +1,5 @@
 {
- "version": 1792354981567,
+ "version": 1792355095284,
  "sellers": [
   {
    "id": "northline",
@@ -266,8 +266,10 @@
    "cat": "tops",
    "seller": "northline",
    "kg": 0,
-   "qcPhotos": [],
-   "qc": 0,
+   "qcPhotos": [
+    "https://cdn.jsdelivr.net/gh/flavianosz-studio/fsfinds@195966d14f91b371af6f1959396b62e1d49299d5/media/finds/1074220666582/qc/mve9xx20-436917c3.webp"
+   ],
+   "qc": 1,
    "featured": false,
    "buyUrl": "",
    "createdAt": 1792351673406,
