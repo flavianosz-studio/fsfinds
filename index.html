@@ -818,7 +818,7 @@ class Component extends DCLogic {
         if(rows&&rows.length){data=data||{photos:[]};data.photos=[...(data.photos||[]),...rows.map(x=>({url:x.url,set:'b'+x.batch,date:new Date(x.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),source:x.source}))];}}catch(e){}
       try{const {data:live}=await c.functions.invoke('github-media',{body:{action:'qc-live',platform:r.platform.toLowerCase(),id:r.id}});
         if(live&&live.photos&&live.photos.length){data=data||{photos:[]};if(!data.title&&live.title)data.title=live.title;
-          data.photos=[...(data.photos||[]),...live.photos.map(x=>({url:x.url,set:'d'+x.set,date:x.date?new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):undefined,source:'Doppel'}))];}}catch(e){}
+          data.photos=[...(data.photos||[]),...live.photos.map(x=>({url:x.url,set:'L'+x.set,date:x.date?new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):undefined,source:x.source||'Partner'}))];data.liveSources=live.sources||[];}}catch(e){}
       const found=!!(data&&data.photos&&data.photos.some(x=>x.url));c.rpc('log_qc_search',{p:r.platform.toLowerCase(),i:r.id,f:found}).then(()=>{},()=>{});}
     const wait=Math.max(0,500-(Date.now()-t0));await new Promise(res=>setTimeout(res,wait));
     if(this.state.qc.id!==r.id)return;
@@ -890,9 +890,9 @@ class Component extends DCLogic {
       const norm=(d.photos||[]).map((ph,i)=>typeof ph==='string'?{url:ph,set:Math.floor(i/6)}:{url:ph.url||null,set:ph.set??Math.floor(i/6),date:ph.date});
       const groups={};norm.forEach(ph=>{(groups[ph.set]=groups[ph.set]||[]).push(ph);});
       const now=Date.now();
-      const sets=Object.keys(groups).map((key,si)=>{const arr=groups[key];const date=arr[0].date||new Date(now-(si*9+2)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const sets=Object.keys(groups).map((key,si)=>{const arr=groups[key];const date=arr[0].date||(arr[0].source?'':new Date(now-(si*9+2)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}));
         const label=`QC set ${si+1}`;
-        return{label,meta:`${date} · ${arr.length} photos${arr[0].source==='Doppel'?' · via Doppel':''}`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
+        return{label,meta:`${date?date+' · ':''}${arr.length} photos${arr[0].source&&['Doppel','Qualit.ly','Partner'].includes(arr[0].source)?' · via '+arr[0].source:''}`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
       const n=norm.length;
       qc={...qc,match:!!p,title:d.title||(p?p.name:`${qc.platform} item ${qc.id}`),priceLabel:d.price?'$'+(+d.price).toFixed(2):'Price on '+agent,
         thumbBg:d.image?`url("${d.image}")`:'radial-gradient(circle at 50% 45%,#2A2A30,#1C1C20 70%)',buyLink:this.buyLink(qc.platform,qc.id),
