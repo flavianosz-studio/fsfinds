@@ -1,5 +1,5 @@
 {
- "version": 1792349913232,
+ "version": 1792350281162,
  "sellers": [
   {
    "id": "northline",
@@ -28,111 +28,6 @@
    "bio": "Wool and cotton knits made in small batches. Colours are photographed in daylight."
   }
  ],
- "products": [
-  {
-   "id": "p0",
-   "name": "Heavyweight Boxy Tee",
-   "cat": "tops",
-   "seller": "northline",
-   "price": 14.9,
-   "qc": 24,
-   "kg": 0.32,
-   "platform": "Weidian",
-   "itemId": "7400000000",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p1",
-   "name": "Garment-Dyed Pocket Tee",
-   "cat": "tops",
-   "seller": "northline",
-   "price": 12.5,
-   "qc": 18,
-   "kg": 0.28,
-   "platform": "Weidian",
-   "itemId": "7403917311",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p2",
-   "name": "Brushed Fleece Hoodie",
-   "cat": "hoodies",
-   "seller": "northline",
-   "price": 29.7,
-   "qc": 36,
-   "kg": 0.85,
-   "platform": "Weidian",
-   "itemId": "7407834622",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p3",
-   "name": "Zip Fleece Hoodie",
-   "cat": "hoodies",
-   "seller": "northline",
-   "price": 33,
-   "qc": 22,
-   "kg": 0.9,
-   "platform": "Weidian",
-   "itemId": "7411751933",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p20",
-   "name": "Cable Knit Crewneck",
-   "cat": "hoodies",
-   "seller": "loop",
-   "price": 31.9,
-   "qc": 23,
-   "kg": 0.7,
-   "platform": "Taobao",
-   "itemId": "700018271540",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p21",
-   "name": "Knit Polo Shirt",
-   "cat": "tops",
-   "seller": "loop",
-   "price": 24.8,
-   "qc": 16,
-   "kg": 0.35,
-   "platform": "Taobao",
-   "itemId": "700019185117",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p22",
-   "name": "Lounge Knit Set",
-   "cat": "tops",
-   "seller": "loop",
-   "price": 41.3,
-   "qc": 28,
-   "kg": 0.9,
-   "platform": "Taobao",
-   "itemId": "700020098694",
-   "image": null,
-   "qcPhotos": []
-  },
-  {
-   "id": "p23",
-   "name": "Mohair Cardigan",
-   "cat": "outerwear",
-   "seller": "loop",
-   "price": 44.6,
-   "qc": 11,
-   "kg": 0.6,
-   "platform": "Taobao",
-   "itemId": "700021012271",
-   "image": null,
-   "qcPhotos": []
-  }
- ],
+ "products": [],
  "settings": {}
 }
