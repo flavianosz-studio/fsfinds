@@ -652,8 +652,10 @@ function fsParse(){let p=location.pathname,b=fsBase();if(p.startsWith(b))p=p.sli
     case 'tools':return{page:'tools',tool:SLUG_TOOL[seg[1]]||'track'};
     case 'account':case 'saved':return{page:'saved'};
     default:return{page:'home'};}}
+function fsSlug(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function fsSellerFind(x){return SELLERS.find(s=>s.id===x)||SELLERS.find(s=>fsSlug(s.name)===x)||null;}
 function fsPath(s){const e=encodeURIComponent;switch(s.page){case 'shop':{const q=new URLSearchParams();if(s.cat&&s.cat!=='all')q.set('cat',s.cat);if(s.query)q.set('q',s.query);const qs=q.toString();return 'shop'+(qs?'?'+qs:'');}
-  case 'sellers':return 'sellers';case 'seller':return 'sellers/'+e(s.sellerId);case 'product':return 'product/'+e(s.productId);
+  case 'sellers':return 'sellers';case 'seller':{const x=fsSellerFind(s.sellerId);return 'sellers/'+e(x?fsSlug(x.name)||x.id:s.sellerId);}case 'product':return 'product/'+e(s.productId);
   case 'tools':return 'tools/'+(TOOL_SLUG[s.tool]||'tracker');case 'saved':return 'account';default:return '';}}
 let SB=null;function sbClient(url,key){if(!SB&&url&&key&&window.supabase){try{SB=window.supabase.createClient(url,key);}catch(e){}}return SB;}
 function fsFileB64(file,max){return new Promise((res,rej)=>{const isImg=/^image\/(jpeg|png|webp)$/.test(file.type);const lim=/^video\//.test(file.type)?15e6:10e6;
@@ -722,7 +724,7 @@ class Component extends DCLogic {
     this._first=true;queueMicrotask(()=>this.applyRoute(replace));}
   applyRoute(replace){const s=this.state;this.syncUrl(replace);this.popping=false;if(this.presence&&this.presenceOn){try{this.presence.track(this.presenceInfo());}catch(e){}}
     const titles={home:'FSFINDS · Verified finds from partner sellers',shop:'Shop · FSFINDS',sellers:'Sellers · FSFINDS',tools:'Tools · FSFINDS',saved:'Account · FSFINDS'};
-    let t=titles[s.page];if(s.page==='seller'){const x=SELLERS.find(v=>v.id===s.sellerId);t=(x?x.name:'Seller')+' · FSFINDS';}if(s.page==='product'){const x=PRODUCTS.find(v=>String(v.id)===String(s.productId));t=(x?x.name:'Find')+' · FSFINDS';}
+    let t=titles[s.page];if(s.page==='seller'){const x=fsSellerFind(s.sellerId);t=(x?x.name:'Seller')+' · FSFINDS';}if(s.page==='product'){const x=PRODUCTS.find(v=>String(v.id)===String(s.productId));t=(x?x.name:'Find')+' · FSFINDS';}
     if(t&&document.title!==t)document.title=t;}
   presenceInfo(){const g=fsGeo()||{};return{page:fsPath(this.state)||'home',cc:g.cc||'',country:g.country||'',dev:innerWidth<760?'mobile':innerWidth<1100?'tablet':'desktop',at:Date.now()};}
   startPresence(c){if(this.presence)return;let vid=localStorage.getItem('fsf_vid');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('fsf_vid',vid);}
@@ -750,10 +752,10 @@ class Component extends DCLogic {
   signOut(){if(SB)SB.auth.signOut();this.setState({user:null});this.showToast('Signed out');}
   componentDidMount(){
     this.initAuth();
-    fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){try{localStorage.setItem('fsf_pub',JSON.stringify(j));}catch(e){}fsApply(j);this.forceUpdate();}}).catch(()=>{});
+    fetch('data/catalog.json?v='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{if(j&&j.products){try{localStorage.setItem('fsf_pub',JSON.stringify(j));}catch(e){}fsApply(j);this._rk=null;this.popping=true;this.forceUpdate();}}).catch(()=>{});
     this.onPop=()=>{this.popping=true;this.setState({...fsParse(),searchOpen:false});window.scrollTo(0,0);};window.addEventListener('popstate',this.onPop);
     if(this.state.page==='product'&&!PRODUCTS.some(p=>String(p.id)===String(this.state.productId)))this.setState({page:'shop'});
-    if(this.state.page==='seller'&&!SELLERS.some(s=>s.id===this.state.sellerId))this.setState({page:'sellers'});
+
     this.popping=true;this._rk=null;this.routeTick();
     const applyLang=(n=0)=>{if(window.FSFI18N){window.FSFI18N.set(this.state.lang);}else if(n<40)this.tl=setTimeout(()=>applyLang(n+1),150);};this.tl=setTimeout(()=>applyLang(),60);
     this.onResize=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onResize);
@@ -843,7 +845,7 @@ class Component extends DCLogic {
     if(st.sort==='low')list=[...list].sort((a,b)=>a.price-b.price);if(st.sort==='high')list=[...list].sort((a,b)=>b.price-a.price);if(st.sort==='qc')list=[...list].sort((a,b)=>b.qc-a.qc);
     const catChips=CATS.map(([id,label])=>{const on=st.cat===id;return{label,count:id==='all'?base.length:base.filter(p=>p.cat===id).length,bg:on?'#E5202F':'#151518',fg:on?'#fff':'#C9C8CC',border:on?'#E5202F':'#2A2A30',select:()=>this.setState({cat:id})};});
     const shopTitle=st.cat==='all'?'All finds':CATS.find(c=>c[0]===st.cat)[1];
-    const sObj=SELLERS.find(s=>s.id===st.sellerId)||SELLERS[0];
+    const sObj=fsSellerFind(st.sellerId)||SELLERS[0];
     const sItems=PRODUCTS.filter(p=>p.seller===sObj.id);
     const seller={...sObj,storeLink:(sObj.platform==='Weidian'&&sObj.shop)?`https://www.cssbuy.com/shop-micro-${sObj.shop}.html?promotionCode=${code}`:(sObj.storeUrl||`https://www.cssbuy.com/?promotionCode=${code}`),
       trackStore:()=>fsTrack('store',{seller:sObj.id}),toggleSave:()=>this.toggleSellerFav(sObj.id),saveLabel:st.favSellers.includes(sObj.id)?'♥ Saved':'♡ Save seller',saveBg:st.favSellers.includes(sObj.id)?'#E5202F':'transparent',saveBorder:st.favSellers.includes(sObj.id)?'#E5202F':'#2A2A30',facts:[{k:'Rating',v:'★ '+sObj.rating},{k:'Finds',v:String(sItems.length)},{k:'Platform',v:sObj.platform},{k:'Ships in',v:sObj.ship},{k:'Partner since',v:sObj.since}]};
