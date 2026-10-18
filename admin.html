@@ -162,7 +162,7 @@ select option{background:#151518;color:#F5F4F2}
   <div style="display:flex;flex-direction:column;gap:12px;animation:rise .35s ease both">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input value="{{ fq }}" onChange="{{ onFq }}" placeholder="Search finds" style="flex:1;min-width:200px;background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F">
-      <select value="{{ fSeller }}" onChange="{{ onFSeller }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="all">All sellers</option><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select>
+      <select value="{{ fSeller }}" onChange="{{ onFSeller }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="all">All sellers</option><option value="none">No seller</option><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select>
       <select value="{{ fCat }}" onChange="{{ onFCat }}" style="background:#151518;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="all">All categories</option><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select>
     </div>
     <div style="background:#151518;border:1px solid #232327;border-radius:20px;overflow:hidden">
@@ -343,7 +343,7 @@ select option{background:#151518;color:#F5F4F2}
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">CSSBuy affiliate link (optional)<input value="{{ ef.buyUrl }}" onChange="{{ efSet.buyUrl }}" placeholder="https://cssb.uy/…" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Name<input value="{{ ef.name }}" onChange="{{ efSet.name }}" placeholder="Heavyweight Boxy Tee" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ ef.seller }}" onChange="{{ efSet.seller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ ef.seller }}" onChange="{{ efSet.seller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><option value="">No seller (just a find)</option><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Category<select value="{{ ef.cat }}" onChange="{{ efSet.cat }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px;font-size:14px"><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select></label>
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Price (USD)<input type="number" step="0.01" value="{{ ef.price }}" onChange="{{ efSet.price }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Weight (kg)<input type="number" step="0.01" value="{{ ef.kg }}" onChange="{{ efSet.kg }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
@@ -375,7 +375,7 @@ select option{background:#151518;color:#F5F4F2}
           </div>
           <span style="font-size:13px;color:#A1A0A6;line-height:1.6">Paste one product per line: the link, plus the name and price if you have them. Example:<br><span style="color:#F5F4F2;font-family:ui-monospace,monospace;font-size:12px">Compression Tee | https://item.taobao.com/item.htm?id=123… | 18.90</span></span>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ bulkSeller }}" onChange="{{ onBulkSeller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none"><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Seller<select value="{{ bulkSeller }}" onChange="{{ onBulkSeller }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none"><option value="">No seller (just a find)</option><sc-for list="{{ sellerOpts }}" as="o"><option value="{{ o.id }}">{{ o.name }}</option></sc-for></select></label>
             <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Category<select value="{{ bulkCat }}" onChange="{{ onBulkCat }}" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none"><sc-for list="{{ catOpts }}" as="o"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select></label>
           </div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Products<textarea value="{{ bulkText }}" onChange="{{ onBulkText }}" rows="12" placeholder="Paste links here, one per line" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-size:13px;resize:vertical;font-family:ui-monospace,monospace" style-focus="border-color:#E5202F"></textarea></label>
@@ -546,7 +546,7 @@ class Component extends DCLogic {
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
     this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();}
-  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',buyUrl:p.buyUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||(db.sellers[0]&&db.sellers[0].id)||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
+  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',buyUrl:p.buyUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:'',storeUrl:'',logo:''},formError:''});}
   bulkParse(){const st=this.state,db=st.db,seen=new Set(db.products.map(p=>p.platform+':'+p.itemId));
     return (st.bulkText||'').split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{const url=(line.match(/https?:\/\/\S+/)||[])[0]||'';const pr=parseLink(url||line);
@@ -554,7 +554,7 @@ class Component extends DCLogic {
       rest.forEach(s=>{const n=s.replace(/[$¥,\s]/g,'').replace(/usd|cny|rmb/ig,'');if(!price&&/^\d+(\.\d+)?$/.test(n))price=s.includes('¥')||/cny|rmb/i.test(s)?+(+n/7.1).toFixed(2):+n;else if(!name&&/[a-z]/i.test(s))name=s;});
       const dup=pr&&seen.has(pr.platform+':'+pr.id);if(pr)seen.add(pr.platform+':'+pr.id);
       return{pr,price,name,dup,line};});}
-  async importYupoo(){const st=this.state;const url=(st.ypUrl||'').trim();if(!st.bulkSeller)return this.setState({formError:'Pick a seller.'});if(!/yupoo\.com/i.test(url))return this.setState({formError:'Paste a Yupoo link (store, category or album).'});
+  async importYupoo(){const st=this.state;const url=(st.ypUrl||'').trim();if(!/yupoo\.com/i.test(url))return this.setState({formError:'Paste a Yupoo link (store, category or album).'});
     const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return this.setState({formError:'Supabase not connected'});
     this.setState({ypBusy:'Reading Yupoo…',formError:''});
     try{const {albums}=await fsInvoke(c,{action:'yupoo-list',url});if(!albums||!albums.length)throw new Error('No albums found on that page.');
@@ -562,7 +562,7 @@ class Component extends DCLogic {
       if(!todo.length)throw new Error('All albums on that page are already imported.');
       let added=0;const sName=(this.state.db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'seller';
       for(let i=0;i<todo.length;i++){if(this.ypCancel)break;const al=todo[i];this.setState({ypBusy:`Importing ${i+1}/${todo.length}…`});
-        try{const r=await fsInvoke(c,{action:'yupoo-album',url:al.url,folder:'media/yupoo/'+st.bulkSeller.replace(/[^a-z0-9-]/gi,''),max:8});
+        try{const r=await fsInvoke(c,{action:'yupoo-album',url:al.url,folder:'media/yupoo/'+((st.bulkSeller||'finds').replace(/[^a-z0-9-]/gi,'')||'finds'),max:8});
           const title=(r.title||al.title||sName+' item').trim();const txt=title+'\n'+(r.desc||'');
           const pm=txt.match(/(?:¥|￥|rmb|cny)\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:¥|￥|rmb|cny|元)/i),um=txt.match(/\$\s*(\d+(?:\.\d+)?)/);
           const cny=pm?+(pm[1]||pm[2]):0,usd=um?+um[1]:cny?+(cny/7.1).toFixed(2):0;
@@ -590,12 +590,12 @@ class Component extends DCLogic {
       db.products=list;this.saveDb(db,`${added} added · ${updated} updated from ylasport.site`);this.setState({drawer:null,ylaBusy:false});}
     catch(e){this.setState({ylaBusy:false,formError:e.message});}}
   saveDrawer(){const st=this.state,db={...st.db};
-    if(st.drawer==='bulk'){const rows=this.bulkParse().filter(r=>r.pr&&!r.dup);if(!rows.length)return this.setState({formError:'No new valid links found.'});if(!st.bulkSeller)return this.setState({formError:'Pick a seller.'});
+    if(st.drawer==='bulk'){const rows=this.bulkParse().filter(r=>r.pr&&!r.dup);if(!rows.length)return this.setState({formError:'No new valid links found.'});
       const sName=(db.sellers.find(s=>s.id===st.bulkSeller)||{}).name||'Item';const t=Date.now();
       const items=rows.map((r,i)=>({id:'p'+(t+i).toString(36),name:r.name||`${sName} ${r.pr.platform} ${r.pr.id}`,cat:st.bulkCat,seller:st.bulkSeller,price:r.price||0,kg:0,platform:r.pr.platform,itemId:r.pr.id,image:'',qcPhotos:[],qc:0,featured:false,createdAt:t+i}));
       db.products=[...items,...db.products];this.saveDb(db,`${items.length} finds imported`);this.setState({drawer:null,bulkText:''});return;}
     if(st.drawer==='find'){const f=st.ef;const pr=parseLink(f.link);
-      if(!f.name.trim())return this.setState({formError:'Add a name.'});if(!pr&&!f.itemId)return this.setState({formError:'Paste a valid Weidian, Taobao, 1688 or agent link.'});if(!f.seller)return this.setState({formError:'Create a seller first.'});
+      if(!f.name.trim())return this.setState({formError:'Add a name.'});if(!pr&&!f.itemId)return this.setState({formError:'Paste a valid Weidian, Taobao, 1688 or agent link.'});
       const qcPhotos=f.qcText.split(/\s+/).map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s));
       const item={...(db.products.find(x=>x.id===f.id)||{}),buyUrl:(f.buyUrl||'').trim(),id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
       const list=[...db.products];const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.unshift(item);db.products=list;this.saveDb(db,i>=0?'Find updated':'Find added');}
@@ -625,7 +625,7 @@ class Component extends DCLogic {
     const cl=Object.values(cm).sort((a,b)=>b.n-a.n).slice(0,8),cmax=cl[0]?cl[0].n:1,vt=visits.length||1;
     const countries=cl.map(c=>({...c,n:fmt(c.n),pct:Math.round(c.n/vt*100)+'%',w:(c.n/cmax*100)+'%'}));
     const byP={};cur.forEach(e=>{if(!e.id)return;byP[e.id]=byP[e.id]||{v:0,c:0};if(e.type==='view')byP[e.id].v++;if(e.type==='buy')byP[e.id].c++;});
-    const sName=id=>(db.sellers.find(s=>s.id===id)||{}).name||'—';
+    const sName=id=>(db.sellers.find(s=>s.id===id)||{}).name||'No seller';
     const topFinds=db.products.map(p=>({p,...(byP[p.id]||{v:0,c:0})})).sort((a,b)=>b.c-a.c||b.v-a.v).slice(0,8).map((x,i)=>({rank:i+1,name:x.p.name,seller:sName(x.p.seller),views:fmt(x.v),clicks:fmt(x.c),ctr:x.v?Math.round(x.c/x.v*100)+'%':'—',edit:()=>this.openFind(x.p)}));
     const dm={mobile:0,desktop:0,tablet:0};visits.forEach(e=>{dm[e.dev]=(dm[e.dev]||0)+1;});
     const devices=[['mobile','Mobile','#E5202F'],['desktop','Desktop','#8A8A92'],['tablet','Tablet','#3A3A40']].map(([k,l,c])=>({label:l,color:c,w:(dm[k]/vt*100)+'%',pct:Math.round(dm[k]/vt*100)+'%'}));
@@ -638,7 +638,7 @@ class Component extends DCLogic {
     const recent=all.filter(e=>e.type!=='view'||e.id).sort((a,b)=>b.t-a.t).slice(0,10).map(e=>{const m=EV_META[e.type]||[e.type,'ph:dot','#1C1C20','#C9C8CC'];return{label:m[0],icon:m[1],bg:m[2],fg:m[3],detail:pName(e.id)||(e.seller?sName(e.seller):'')||e.q||e.page||e.ref||'',cc:e.cc||'—',ago:ago(e.t)};});
     // finds
     const q=st.fq.trim().toLowerCase(),clicksAll={};all.forEach(e=>{if(e.type==='buy'&&e.id)clicksAll[e.id]=(clicksAll[e.id]||0)+1;});
-    const findRows=db.products.filter(p=>(st.fSeller==='all'||p.seller===st.fSeller)&&(st.fCat==='all'||p.cat===st.fCat)&&(!q||(p.name+' '+sName(p.seller)).toLowerCase().includes(q))).map(p=>({
+    const findRows=db.products.filter(p=>(st.fSeller==='all'||(st.fSeller==='none'?!p.seller:p.seller===st.fSeller))&&(st.fCat==='all'||p.cat===st.fCat)&&(!q||(p.name+' '+sName(p.seller)).toLowerCase().includes(q))).map(p=>({
       name:p.name,featured:!!p.featured,meta:`${sName(p.seller)} · ${(CATS.find(c=>c[0]===p.cat)||['',''])[1]} · ${p.platform} ${p.itemId}`,price:'$'+(+p.price||0).toFixed(2),qc:(p.qcPhotos&&p.qcPhotos.length)||p.qc||0,clicks:fmt(clicksAll[p.id]||0),
       thumb:p.image?`url("${p.image}")`:'none',icon:CAT_ICONS[p.cat]||'ph:package',iconOpacity:p.image?'0':'1',
       edit:()=>this.openFind(p),dup:()=>{const copy={...p,id:'p'+Date.now().toString(36),name:p.name+' (copy)',createdAt:Date.now()};this.saveDb({...db,products:[copy,...db.products]},'Find duplicated');},
@@ -695,7 +695,7 @@ class Component extends DCLogic {
         return{label,icon:CAT_ICONS[id],img,imgBg:img?`url("${img}")`:'none',hasImg:!!img,noImg:!img,count:db.products.filter(p=>p.cat===id).length,tileBg:img?'radial-gradient(circle at 50% 42%,#FFFFFF,#E4E2DF 78%)':'radial-gradient(circle at 50% 55%,rgba(229,32,47,.22),#1C1C20 68%)',
           remove:()=>setImg(''),setUrl:()=>{const u=prompt('Image URL for '+label,img||'https://');if(u&&/^https?:\/\//.test(u))setImg(u.trim());},
           upload:e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;this.uploadMedia(f,'media/categories',900).then(u=>u&&setImg(u));}};}),
-      showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),openBulk:()=>this.setState({drawer:'bulk',formError:'',bulkSeller:st.fSeller!=='all'?st.fSeller:(st.bulkSeller||(db.sellers[0]||{}).id),bulkCat:st.fCat!=='all'?st.fCat:(st.bulkCat||'tops')}),newSeller:()=>this.openSeller(null),
+      showAddFind:sec==='finds',showAddSeller:sec==='sellers',newFind:()=>this.openFind(null),openBulk:()=>this.setState({drawer:'bulk',formError:'',bulkSeller:st.fSeller!=='all'?st.fSeller:(st.bulkSeller||''),bulkCat:st.fCat!=='all'?st.fCat:(st.bulkCat||'tops')}),newSeller:()=>this.openSeller(null),
       ranges,sampleOn,toggleSample:()=>this.setState({sample:!sampleOn}),sampleTrack:sampleOn?'#E5202F':'#3A3A40',sampleKnob:sampleOn?'14px':'2px',
       sampleNote:`Showing sample data mixed with ${real.length} real events from this browser. Turn it off to see only real activity.`,
       kpis,kpiCols:`repeat(${w>=1200?5:w>=700?3:2},minmax(0,1fr))`,mainCols:w>=1100?'minmax(0,1.6fr) minmax(0,1fr)':'minmax(0,1fr)',

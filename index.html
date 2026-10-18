@@ -639,7 +639,7 @@ const DEFAULT_PRODUCTS=RAW.map((r,i)=>{const s=DEFAULT_SELLERS.find(x=>x.id===r[
 const FSDB=(()=>{try{return JSON.parse(localStorage.getItem('fsf_db')||'null');}catch(e){return null;}})();
 if(!FSDB){try{localStorage.setItem('fsf_db',JSON.stringify({sellers:DEFAULT_SELLERS,products:DEFAULT_PRODUCTS,settings:{}}));}catch(e){}}
 let SELLERS=(FSDB&&FSDB.sellers&&FSDB.sellers.length)?FSDB.sellers:DEFAULT_SELLERS;
-let PRODUCTS=((FSDB&&FSDB.products)?FSDB.products:DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>SELLERS.some(s=>s.id===p.seller));
+let PRODUCTS=((FSDB&&FSDB.products)?FSDB.products:DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>!p.seller||SELLERS.some(s=>s.id===p.seller));
 let SETTINGS=(FSDB&&FSDB.settings)||{};
 const SB_URL='https://zpylgnbppleajzngxgxb.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweWxnbmJwcGxlYWp6bmd4Z3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjk0MTQsImV4cCI6MjEwNzkwNTQxNH0.EI68QGfbglxM7Upa_YxRfk9k43024kthSX7q1TqfUwo';
 const TOOL_SLUG={track:'tracker',qc:'qc',size:'size',convert:'converter'},SLUG_TOOL={tracker:'track',qc:'qc',size:'size',converter:'convert'};
@@ -673,7 +673,9 @@ function fsFlushSoon(){clearTimeout(window.__fsqt);window.__fsqt=setTimeout(fsFl
 function fsFlush(){const q=window.__fsq||[];if(!q.length)return;if(!SB){fsFlushSoon();return;}const batch=q.splice(0,q.length);SB.from('events').insert(batch).then(({error})=>{if(error&&!/relation|does not exist/i.test(error.message||''))window.__fsq.unshift(...batch.slice(0,200));},()=>{});}
 addEventListener('pagehide',()=>{try{fsFlush();}catch(e){}});
 let QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);
-function fsApply(F){SELLERS=(F.sellers&&F.sellers.length)?F.sellers:DEFAULT_SELLERS;PRODUCTS=(F.products||DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>SELLERS.some(s=>s.id===p.seller));SETTINGS=F.settings||{};QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);if(typeof fsNorm==='function')fsNorm();}
+function fsApply(F){SELLERS=(F.sellers&&F.sellers.length)?F.sellers:DEFAULT_SELLERS;PRODUCTS=(F.products||DEFAULT_PRODUCTS).map(p=>({image:null,...p,qcPhotos:p.qcPhotos||[],qc:(p.qcPhotos&&p.qcPhotos.length)||+p.qc||0,price:+p.price||0,kg:+p.kg||0})).filter(p=>!p.seller||SELLERS.some(s=>s.id===p.seller));SETTINGS=F.settings||{};QC_TOTAL=PRODUCTS.reduce((a,p)=>a+p.qc,0);if(typeof fsNorm==='function')fsNorm();}
+const INDEP={id:'',name:'FSFINDS pick',code:'FS',tag:'',platform:'',hasLogo:false,logoBgImg:'none',storeUrl:''};
+function sellerOf(id){return (id&&SELLERS.find(x=>x.id===id))||INDEP;}
 function fsNorm(){SELLERS=SELLERS.map(s=>({...s,hasLogo:!!s.logo,logoBgImg:s.logo?`url("${s.logo}")`:'none'}));}
 try{const pub=JSON.parse(localStorage.getItem('fsf_pub')||'null');if(pub&&pub.products)fsApply(pub);}catch(e){}fsNorm();
 const CHARTS={tee:{S:[98,68],M:[103,70],L:[108,72],XL:[113,74],XXL:[118,76]},hoodie:{S:[104,67],M:[110,69],L:[116,71],XL:[122,73],XXL:[128,75]},jacket:{S:[108,68],M:[114,70],L:[120,72],XL:[126,74],XXL:[132,76]}};
@@ -769,7 +771,7 @@ class Component extends DCLogic {
   go(page,extra={}){fsTrack('view',{page,id:extra.productId||extra.sellerId||null});this.setState(s=>({prev:s.page,page,thumb:0,searchOpen:false,hoverSeller:null,hoverTool:null,...extra}));window.scrollTo({top:0,behavior:'smooth'});}
   showToast(msg){clearTimeout(this.tt);this.setState({toast:msg,toastOn:true});this.tt=setTimeout(()=>this.setState({toastOn:false}),1900);}
   toggleFav(id){const had=this.state.favs.includes(id);const favs=had?this.state.favs.filter(x=>x!==id):[...this.state.favs,id];localStorage.setItem('fsf_favs',JSON.stringify(favs));this.pushFavs(favs,this.state.favSellers);fsTrack(had?'unfav':'fav',{id});this.setState({favs});this.showToast(had?'Removed from saved':'Saved to your list');}
-  card(p){const s=SELLERS.find(x=>x.id===p.seller);const fav=this.state.favs.includes(p.id);
+  card(p){const s=sellerOf(p.seller);const fav=this.state.favs.includes(p.id);
     return{...p,sellerName:s.name,priceLabel:'$'+p.price.toFixed(2),favIcon:fav?'♥':'♡',favBg:fav?'#E5202F':'rgba(11,11,13,.6)',
       open:()=>this.go('product',{productId:p.id}),toggleFav:e=>{e&&e.stopPropagation&&e.stopPropagation();this.toggleFav(p.id);}};}
   closePopup(){localStorage.setItem('fsf_popup_seen','1');this.setState({popup:false});}
@@ -831,7 +833,7 @@ class Component extends DCLogic {
     const homeTabs=CATS.map(([id,label])=>{const on=st.homeCat===id;return{label,bg:on?'#E5202F':'transparent',fg:on?'#fff':'#A1A0A6',select:()=>this.setState({homeCat:id})};});
     const homeItems=PRODUCTS.filter(p=>st.homeCat==='all'||p.cat===st.homeCat).sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)).slice(0,8).map(p=>this.card(p));
     const q=st.query.trim().toLowerCase();
-    const match=(p,qq)=>(p.name+' '+SELLERS.find(s=>s.id===p.seller).name+' '+p.cat).toLowerCase().includes(qq);
+    const match=(p,qq)=>(p.name+' '+sellerOf(p.seller).name+' '+p.cat).toLowerCase().includes(qq);
     const base=PRODUCTS.filter(p=>(st.sellerFilter==='all'||p.seller===st.sellerFilter)&&(!q||match(p,q)));
     let list=base.filter(p=>st.cat==='all'||p.cat===st.cat);
     if(st.sort==='low')list=[...list].sort((a,b)=>a.price-b.price);if(st.sort==='high')list=[...list].sort((a,b)=>b.price-a.price);if(st.sort==='qc')list=[...list].sort((a,b)=>b.qc-a.qc);
@@ -842,10 +844,10 @@ class Component extends DCLogic {
     const seller={...sObj,storeLink:(sObj.platform==='Weidian'&&sObj.shop)?`https://www.cssbuy.com/shop-micro-${sObj.shop}.html?promotionCode=${code}`:(sObj.storeUrl||`https://www.cssbuy.com/?promotionCode=${code}`),
       trackStore:()=>fsTrack('store',{seller:sObj.id}),toggleSave:()=>this.toggleSellerFav(sObj.id),saveLabel:st.favSellers.includes(sObj.id)?'♥ Saved':'♡ Save seller',saveBg:st.favSellers.includes(sObj.id)?'#E5202F':'transparent',saveBorder:st.favSellers.includes(sObj.id)?'#E5202F':'#2A2A30',facts:[{k:'Rating',v:'★ '+sObj.rating},{k:'Finds',v:String(sItems.length)},{k:'Platform',v:sObj.platform},{k:'Ships in',v:sObj.ship},{k:'Partner since',v:sObj.since}]};
     const pObj=PRODUCTS.find(p=>p.id===st.productId)||PRODUCTS[0];
-    const pc=this.card(pObj),pFav=st.favs.includes(pObj.id),pSeller=SELLERS.find(s=>s.id===pObj.seller);
+    const pc=this.card(pObj),pFav=st.favs.includes(pObj.id),pSeller=sellerOf(pObj.seller);
     const src=pObj.itemId?sourceUrl(pObj.platform,pObj.itemId):(pSeller.storeUrl||''),buy=pObj.buyUrl||(pObj.itemId?this.buyLink(pObj.platform,pObj.itemId):(pSeller.storeUrl||signupLink));
     const prod={...pc,sellerCode:pSeller.code,cny:pObj.priceCny?'¥'+pObj.priceCny:'≈ ¥'+Math.round(pObj.price*7.1),desc:pObj.desc||'',hasDesc:!!pObj.desc,buyLink:buy,favLabel:pFav?'♥ Saved':'♡ Save',favBg:pFav?'#E5202F':'#151518',favBorder:pFav?'#E5202F':'#2A2A30',copyLabel:st.copied==='p'?'✓ Copied':'Copy link',
-      openSeller:()=>this.go('seller',{sellerId:pObj.seller}),
+      openSeller:()=>pObj.seller?this.go('seller',{sellerId:pObj.seller}):this.go('shop',{cat:'all',query:''}),
       checkQc:()=>{this.go('tools',{tool:'qc',qcInput:src});setTimeout(()=>this.runQc(),0);},
       checkSize:()=>this.go('tools',{tool:'size',sz:{...st.sz,sel:null,mode:pObj.cat==='shoes'?'shoes':pObj.cat==='pants'?'bottoms':'tops',garment:pObj.cat==='outerwear'?'jacket':pObj.cat==='tops'?'tee':'hoodie'}}),
       copyLink:()=>{fsTrack('copy',{id:pObj.id,seller:pObj.seller});this.copy(buy,'p',`${agent} link copied`);},trackBuy:()=>fsTrack('buy',{id:pObj.id,seller:pObj.seller})};
