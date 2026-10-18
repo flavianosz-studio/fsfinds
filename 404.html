@@ -390,6 +390,19 @@ input[type=range]{accent-color:#E5202F}
               <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}"><label style="display:flex;align-items:center;gap:8px;background:#E5202F;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s" style-hover="background:#FF3B47"><iconify-icon icon="ph:upload-simple"></iconify-icon>{{ qcUpLabel }}<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ qcUpload }}" style="display:none"></label></sc-if>
               <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSignIn }}" style="border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer" style-hover="border-color:#E5202F">Sign in to share</button></sc-if>
             </div>
+            <sc-if value="{{ dpOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:8px;font-family:'Sora',sans-serif;font-weight:700;font-size:16px"><iconify-icon icon="ph:images" style="font-size:20px;color:#FF5A64"></iconify-icon>More QC from Doppel</span>
+                  <a href="{{ dpUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;border:1px solid #2A2A30;background:#151518;color:#F5F4F2;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none" style-hover="border-color:#E5202F">Open full page ↗</a>
+                </div>
+                <div style="position:relative;width:100%;height:{{ dpHeight }};border-radius:16px;overflow:hidden;border:1px solid #232327;background:#0B0B0D">
+                  <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#6E6D73;padding:20px;text-align:center">Loading Doppel… If nothing shows, use “Open full page”.</span>
+                  <iframe src="{{ dpUrl }}" title="Doppel QC" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="position:relative;width:100%;height:100%;border:0;background:transparent"></iframe>
+                </div>
+                <span style="font-size:11px;color:#6E6D73">QC photos shown from doppel.fit with their permission.</span>
+              </div>
+            </sc-if>
             <span style="font-size:12px;font-weight:700;color:#6E6D73;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Search elsewhere</span>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
               <sc-for list="{{ qc.sources }}" as="src" hint-placeholder-count="4"><a href="{{ src.url }}" target="_blank" style="background:#0B0B0D;border:1px solid #2A2A30;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,transform .2s" style-hover="border-color:#E5202F;transform:translateY(-2px);color:#F5F4F2"><span style="font-weight:700;font-size:14px">{{ src.name }} ↗</span><span style="font-size:12px;color:#A1A0A6">{{ src.desc }}</span></a></sc-for>
@@ -802,6 +815,9 @@ class Component extends DCLogic {
     const c=sbClient(this.sbUrl(),this.sbKey());
     if(c){try{const {data:rows}=await c.from('qc_photos').select('url,kind,batch,created_at,source').eq('platform',r.platform.toLowerCase()).eq('item_id',r.id).eq('status','approved').order('created_at',{ascending:false}).limit(300);
         if(rows&&rows.length){data=data||{photos:[]};data.photos=[...(data.photos||[]),...rows.map(x=>({url:x.url,set:'b'+x.batch,date:new Date(x.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),source:x.source}))];}}catch(e){}
+      try{const {data:live}=await c.functions.invoke('github-media',{body:{action:'qc-live',platform:r.platform.toLowerCase(),id:r.id}});
+        if(live&&live.photos&&live.photos.length){data=data||{photos:[]};if(!data.title&&live.title)data.title=live.title;
+          data.photos=[...(data.photos||[]),...live.photos.map(x=>({url:x.url,set:'d'+x.set,date:x.date?new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):undefined,source:'Doppel'}))];}}catch(e){}
       const found=!!(data&&data.photos&&data.photos.some(x=>x.url));c.rpc('log_qc_search',{p:r.platform.toLowerCase(),i:r.id,f:found}).then(()=>{},()=>{});}
     const wait=Math.max(0,500-(Date.now()-t0));await new Promise(res=>setTimeout(res,wait));
     if(this.state.qc.id!==r.id)return;
@@ -875,7 +891,7 @@ class Component extends DCLogic {
       const now=Date.now();
       const sets=Object.keys(groups).map((key,si)=>{const arr=groups[key];const date=arr[0].date||new Date(now-(si*9+2)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
         const label=`QC set ${si+1}`;
-        return{label,meta:`${date} · ${arr.length} photos`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
+        return{label,meta:`${date} · ${arr.length} photos${arr[0].source==='Doppel'?' · via Doppel':''}`,photos:arr.map((ph,pi)=>{const idx=flat.length;flat.push({...ph,setLabel:label,n:pi+1});const vid=isVideoUrl(ph.url);return{bg:vid?'radial-gradient(circle at 50% 45%,#3A1216,#151518 70%)':ph.url?`url("${ph.url}")`:'radial-gradient(circle at 50% 45%,#26262B,#1C1C20 70%)',label:vid?'▶ Video':ph.url?'':'QC '+(pi+1),open:()=>vid?window.open(ph.url,'_blank'):this.setState({lb:idx})};})};});
       const n=norm.length;
       qc={...qc,match:!!p,title:d.title||(p?p.name:`${qc.platform} item ${qc.id}`),priceLabel:d.price?'$'+(+d.price).toFixed(2):'Price on '+agent,
         thumbBg:d.image?`url("${d.image}")`:'radial-gradient(circle at 50% 45%,#2A2A30,#1C1C20 70%)',buyLink:this.buyLink(qc.platform,qc.id),
@@ -970,6 +986,8 @@ class Component extends DCLogic {
       trackDetected:!!tDet,trackCarrier:tDet?tDet.name:'',trackError:st.trackError,trackOk:!!tn,track17:`https://t.17track.net/en#nums=${tn}`,trackOfficial:tn&&tDet&&tDet.url?tDet.url:'',
       trackFrameH:tn?'560px':'0px',copyTrack:()=>this.copy(tn,'t','Tracking number copied'),copyTrackLabel:st.copied==='t'?'✓ Copied':'Copy number',
       recentTracks:st.recent.map(n=>({num:n,go:()=>this.runTrack(n)})),hasRecentTracks:st.recent.length>0,clearTracks:()=>{localStorage.removeItem('fsf_tracks');this.setState({recent:[]});},
+      ...(()=>{const t=SETTINGS.doppelUrl||this.props.doppelUrl||'';const q=st.qc;const qp=q&&q.id?PRODUCTS.find(x=>x.itemId===q.id&&x.doppelUrl):null;const own=qp&&/^https:\/\/(www\.)?doppel\.fit\//.test(qp.doppelUrl)?qp.doppelUrl:'';const on=!!(q&&q.ok&&q.id&&(own||t));
+        return{dpOn:on,dpUrl:on?(own||t.replace('{platform}',encodeURIComponent(String(q.platform).toLowerCase())).replace('{id}',encodeURIComponent(q.id))):'about:blank',dpHeight:st.w<700?'560px':'720px'};})(),
       qcUpLabel:st.qcUp||'Upload photos',
       qcUpload:async e=>{const files=[...(e.target.files||[])].slice(0,12);e.target.value='';const q=this.state.qc;if(!files.length||!q.id)return;const c=sbClient(this.sbUrl(),this.sbKey());if(!c)return;const batch=Date.now();let ok=0;
         for(let i=0;i<files.length;i++){this.setState({qcUp:`Uploading ${i+1}/${files.length}…`});try{const d=await fsFileB64(files[i],1600);await fsInvoke(c,{action:'upload',name:d.name,data:d.b64,qc:{platform:q.platform.toLowerCase(),item_id:q.id,batch}});ok++;}catch(err){this.showToast(err.message);}}
