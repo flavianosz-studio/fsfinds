@@ -384,6 +384,21 @@ select option{background:#151518;color:#F5F4F2}
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Main image URL<input value="{{ ef.image }}" onChange="{{ efSet.image }}" placeholder="https://…/photo.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:14px;outline:none" style-focus="border-color:#E5202F"></label>
           <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed #3A3A40;background:#0B0B0D;color:#F5F4F2;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:upload-simple" style="font-size:16px"></iconify-icon>Upload main photo to GitHub<input type="file" accept="image/*" onChange="{{ efUploadMain }}" style="display:none"></label>
           <sc-if value="{{ efHasImage }}" hint-placeholder-val="{{ false }}"><div style="width:120px;aspect-ratio:1;border-radius:14px;border:1px solid #2A2A30;background-color:#1C1C20;background-image:{{ efImageBg }};background-size:cover;background-position:center"></div></sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:#A1A0A6">More product photos</span><span style="font-size:11px;color:#6E6D73">{{ efPhotoCount }}</span></div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed #3A3A40;background:#0B0B0D;color:#F5F4F2;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:images-square" style="font-size:16px"></iconify-icon>Upload several photos<input type="file" multiple accept="image/*" onChange="{{ efUploadPhotos }}" style="display:none"></label>
+            <sc-if value="{{ efHasPhotos }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px">
+                <sc-for list="{{ efPhotoThumbs }}" as="t" hint-placeholder-count="0">
+                  <div style="position:relative;aspect-ratio:1;border-radius:10px;border:1px solid #2A2A30;background-color:#1C1C20;background-image:{{ t.bg }};background-size:cover;background-position:center">
+                    <button onClick="{{ t.remove }}" title="Remove" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(11,11,13,.85);color:#F5F4F2;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><iconify-icon icon="ph:x" style="font-size:12px"></iconify-icon></button>
+                    <button onClick="{{ t.makeMain }}" title="Set as main" style="position:absolute;left:4px;bottom:4px;border:none;background:rgba(11,11,13,.85);color:#F5F4F2;font-size:10px;font-weight:700;padding:4px 6px;border-radius:6px;cursor:pointer">Main</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">Or paste photo URLs (one per line)<textarea value="{{ ef.photosText }}" onChange="{{ efSet.photosText }}" rows="3" placeholder="https://…/photo-2.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea></label>
+          </div>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#A1A0A6">QC photo URLs (one per line) · {{ efQcCount }}<textarea value="{{ ef.qcText }}" onChange="{{ efSet.qcText }}" rows="5" placeholder="https://…/qc1.jpg&#10;https://…/qc2.jpg" style="background:#0B0B0D;border:1px solid #2A2A30;color:#F5F4F2;border-radius:12px;padding:12px 14px;font-size:13px;outline:none;resize:vertical" style-focus="border-color:#E5202F"></textarea></label>
           <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed #3A3A40;background:#0B0B0D;color:#F5F4F2;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s" style-hover="border-color:#E5202F"><iconify-icon icon="ph:images" style="font-size:16px"></iconify-icon>Upload QC photos / videos to GitHub<input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange="{{ efUploadQc }}" style="display:none"></label>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px"><sc-for list="{{ efQcThumbs }}" as="q"><div style="aspect-ratio:1;border-radius:10px;background-color:#1C1C20;background-image:{{ q.bg }};background-size:cover;background-position:center;border:1px solid #2A2A30"></div></sc-for></div>
@@ -623,7 +638,7 @@ class Component extends DCLogic {
     if(error){this.setState({busy:false,pwError:true,loginErr:error.message||'Sign-in failed.'});return;}
     if(!this.isAdmin(data.user)){await c.auth.signOut();this.setState({busy:false,pwError:true,loginErr:'This account does not have admin access.'});return;}
     this.setState({busy:false,authed:true,pw:''});this.loadUsers();this.loadQc();this.fetchEvents();this.startLive();}
-  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',buyUrl:p.buyUrl||'',doppelUrl:p.doppelUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
+  openFind(p,sellerId){const db=this.state.db;const base=p?{...p,link:srcUrl(p.platform,p.itemId),qcText:(p.qcPhotos||[]).join('\n'),image:p.image||'',photosText:(p.photos||[]).join('\n'),buyUrl:p.buyUrl||'',doppelUrl:p.doppelUrl||''}:{id:null,name:'',cat:'tops',seller:sellerId||'',price:'',kg:'0.5',platform:'',itemId:'',link:'',image:'',qcText:'',qc:0,featured:false};this.setState({drawer:'find',ef:base,formError:''});}
   openSeller(s){this.setState({drawer:'seller',es:s?{...s}:{id:null,name:'',code:'',tag:'',badge:'New',platform:'Weidian',shop:'',rating:'4.8',ship:'1–3 days',since:String(new Date().getFullYear()),bio:'',storeUrl:'',logo:''},formError:''});}
   bulkParse(){const st=this.state,db=st.db,seen=new Set(db.products.map(p=>p.platform+':'+p.itemId));
     return (st.bulkText||'').split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{const url=(line.match(/https?:\/\/\S+/)||[])[0]||'';const pr=parseLink(url||line);
@@ -682,7 +697,7 @@ class Component extends DCLogic {
     if(st.drawer==='find'){const f=st.ef;const pr=parseLink(f.link);
       if(!f.name.trim())return this.setState({formError:'Add a name.'});if(!pr&&!f.itemId)return this.setState({formError:'Paste a valid Weidian, Taobao, 1688 or agent link.'});
       const qcPhotos=f.qcText.split(/\s+/).map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s));
-      const item={...(db.products.find(x=>x.id===f.id)||{}),buyUrl:(f.buyUrl||'').trim(),doppelUrl:(f.doppelUrl||'').trim(),id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
+      const item={...(db.products.find(x=>x.id===f.id)||{}),buyUrl:(f.buyUrl||'').trim(),doppelUrl:(f.doppelUrl||'').trim(),id:f.id||'p'+Date.now().toString(36),name:f.name.trim(),cat:f.cat,seller:f.seller,price:+f.price||0,kg:+f.kg||0,platform:pr?pr.platform:f.platform,itemId:pr?pr.id:f.itemId,image:f.image.trim()||null,photos:(f.photosText||'').split(/\s+/).map(s=>s.trim()).filter(s=>/^https?:\/\//.test(s)),qcPhotos,qc:qcPhotos.length||+f.qc||0,featured:!!f.featured,createdAt:f.createdAt||Date.now()};
       const list=[...db.products];const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.unshift(item);db.products=list;this.saveDb(db,i>=0?'Find updated':'Find added');}
     else{const s=st.es;if(!s.name.trim())return this.setState({formError:'Add a store name.'});
       const code=(s.code||s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2)).toUpperCase();
@@ -732,7 +747,7 @@ class Component extends DCLogic {
       edit:()=>this.openSeller(s),addFind:()=>this.openFind(null,s.id),del:()=>this.setState({confirm:{title:'Delete this seller?',text:n?`${s.name} and its ${n} finds will be removed from the site.`:`${s.name} will be removed from the site.`,run:()=>this.saveDb({...db,sellers:db.sellers.filter(x=>x.id!==s.id),products:db.products.filter(p=>p.seller!==s.id)},'Seller deleted')}})};});
     // editor bindings
     const ef=st.ef||{},es=st.es||{};const efParsedObj=parseLink(ef.link);
-    const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc','buyUrl','doppelUrl'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
+    const efSet={};['link','name','seller','cat','price','kg','image','qcText','qc','buyUrl','doppelUrl','photosText'].forEach(k=>{efSet[k]=e=>{const v=e.target.value;this.setState(S=>({ef:{...S.ef,[k]:v},formError:''}));};});
     const esSet={};['name','code','tag','badge','platform','shop','rating','ship','since','bio','logo'].forEach(k=>{esSet[k]=e=>{const v=e.target.value;this.setState(S=>({es:{...S.es,[k]:v},formError:''}));};});
     const esStore=parseStore(es.storeUrl);
     const esExtra={
@@ -748,6 +763,8 @@ class Component extends DCLogic {
     const qcUrls=(ef.qcText||'').split(/\s+/).filter(s=>/^https?:\/\//.test(s));
     const efFolder='media/finds/'+((ef.itemId||(parseLink(ef.link||'')||{}).id||'misc')+'').replace(/[^a-z0-9]/gi,'');
     const efUploadMain=e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;this.uploadMedia(f,efFolder).then(u=>u&&this.setState(S=>({ef:{...S.ef,image:u}})));};
+    const efPhotos=(ef.photosText||'').split(/\s+/).filter(s=>/^https?:\/\//.test(s));
+    const efUploadPhotos=e=>{const fs=[...(e.target.files||[])];e.target.value='';if(!fs.length)return;this.uploadMany(fs,efFolder+'/photos').then(us=>us.length&&this.setState(S=>({ef:{...S.ef,photosText:[(S.ef.photosText||'').trim(),...us].filter(Boolean).join('\n')}})));};
     const efUploadQc=e=>{const fs=[...(e.target.files||[])];e.target.value='';if(!fs.length)return;this.uploadMany(fs,efFolder+'/qc').then(us=>us.length&&this.setState(S=>({ef:{...S.ef,qcText:[(S.ef.qcText||'').trim(),...us].filter(Boolean).join('\n')}})));};
     // settings
     const sd=st.settingsDraft||{agentName:db.settings.agentName||'CSSBuy',promoCode:db.settings.promoCode||'FSFINDS',signupLink:db.settings.signupLink||'https://cssb.uy/24Fo',adminPassword:db.settings.adminPassword||'',showCouponPopup:db.settings.showCouponPopup??true,doppelUrl:db.settings.doppelUrl||''};
@@ -813,7 +830,8 @@ class Component extends DCLogic {
           bulkSummary:rows.length?`${ok} ready${dup?' · '+dup+' already added':''}${bad?' · '+bad+' invalid':''}`:'Nothing pasted yet',bulkBadgeBg:ok?'rgba(61,220,132,.12)':'#1C1C20',bulkBadgeFg:ok?'#3DDC84':'#A1A0A6',
           bulkRows:rows.slice(0,100).map(r=>({name:r.pr?(r.name||`${sName} ${r.pr.platform} ${r.pr.id}`):r.line,meta:!r.pr?'Invalid link':r.dup?'Already added':(r.price?'$'+r.price.toFixed(2):'No price')+' · '+r.pr.platform,border:!r.pr?'rgba(229,32,47,.5)':r.dup?'#3A3A40':'#232327'}))};})(),editingSeller:st.drawer==='seller',
       closeDrawer:()=>this.setState({drawer:null}),saveDrawer:()=>this.saveDrawer(),stop:e=>e.stopPropagation(),formError:st.formError,
-      ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,efUploadMain,efUploadQc,...esExtra,
+      ef:{...ef,platform:efParsedObj?efParsedObj.platform:ef.platform,itemId:efParsedObj?efParsedObj.id:ef.itemId},efParsed:!!efParsedObj,efSet,es,esSet,efUploadMain,efUploadQc,efUploadPhotos,efPhotoCount:efPhotos.length+' added',efHasPhotos:efPhotos.length>0,
+      efPhotoThumbs:efPhotos.map((u,i)=>({bg:`url("${u}")`,remove:()=>this.setState(S=>({ef:{...S.ef,photosText:efPhotos.filter((_,j)=>j!==i).join('\n')}})),makeMain:()=>this.setState(S=>({ef:{...S.ef,image:u,photosText:[...(S.ef.image?[S.ef.image]:[]),...efPhotos.filter((_,j)=>j!==i)].join('\n')}}))})),...esExtra,
       efHasImage:!!(ef.image&&/^https?:/.test(ef.image)),efImageBg:`url("${ef.image}")`,efQcCount:qcUrls.length+' added',efQcThumbs:qcUrls.slice(0,12).map(u=>({bg:`url("${u}")`})),
       efToggleFeatured:()=>this.setState(S=>({ef:{...S.ef,featured:!S.ef.featured}})),efFeatTrack:ef.featured?'#E5202F':'#3A3A40',efFeatKnob:ef.featured?'19px':'3px',
       confirmOpen:!!st.confirm,confirmTitle:st.confirm?st.confirm.title:'',confirmText:st.confirm?st.confirm.text:'',cancelConfirm:()=>this.setState({confirm:null}),doConfirm:()=>{st.confirm&&st.confirm.run();this.setState({confirm:null});},
